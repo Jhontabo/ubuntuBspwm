@@ -1,5 +1,7 @@
 # KaliBspwm - Pacman/arcade theme
 
+Este script esta basado en https://github.com/ZLCubewm y fue personalizado a mi gusto/KaliBsp.
+
 BSPWM para Kali personalizado con un tema de pacman, perfecto para resolver mauqinas en HTB
 
 Primero que nada actualiza el sistema antes de usar este escript con ```sudo apt update``` y ```sudo apt upgrade```
