@@ -42,20 +42,6 @@ Si necesitas más ayuda con la configuración pica en la imagen que te lleva a m
 
 [![Watch the video](https://img.youtube.com/vi/CClVFk4CCic/default.jpg)](https://youtu.be/CClVFk4CCic)
 
-#===============================MIS-REDES==================================#
-
-Practicamente Jhontabo en todos lados
-
-https://www.youtube.com/@Jhontabo
-
-https://www.twitter.com/Jhontabo
-
-https://www.tiktok.com/@Jhontabo
-
-https://www.twitch.tv/Jhontabo
-
-https://www.instagram.com/Jhontabo
-
 #=========================================================================#
 
 A continuación un ejemplo de cómo se ve visualmente, custom p10k, kitty terminal, zsh shell, custom wallpapers, i3lock, etc.
