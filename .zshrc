@@ -151,3 +151,9 @@ bindkey "^[[1;3D" backward-word
 source ~/.powerlevel10k/powerlevel10k.zsh-theme
 
 export PATH="/home/hacker/flutter/flutter/bin:$PATH"
+
+
+#alias
+
+alias dev='npm run dev'
+alias pas='php artisan serve'
