@@ -13,7 +13,7 @@ shift + l
 
 # program launcher
 alt + d
-	rofi -show run
+  rofi -show drun -show-icons -drun-display-format 
 
 # make sxhkd reload its configuration files:
 alt + Escape
