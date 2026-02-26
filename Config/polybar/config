@@ -1,0 +1,428 @@
+;; ===========================================
+;;  CONFIGURACION UNICA DE POLYBAR
+;; ===========================================
+
+;; --- COLORES ---
+
+[color]
+bg = #99000000
+fg = #FFFFFF
+ac = #FEC006
+ghost = #7DCFFF
+trans = #00000000
+white = #FFFFFF
+black = #000000
+red = #e53935
+blue = #b1e3ff
+gray = #757575
+
+;; Colores Material adicionales
+purple = #8e24aa
+green = #43a047
+yellow = #FEC006
+orange = #F57C00
+pink = #d81b60
+light-purple = #CF9FFF
+cyan = #00acc1
+teal = #00897b
+
+
+;; --- CONFIGURACION GLOBAL ---
+
+[global/wm]
+margin-bottom = 0
+margin-top = 0
+
+
+;; --- SETTINGS ---
+
+[settings]
+throttle-output = 5
+throttle-output-for = 10
+throttle-input-for = 30
+screenchange-reload = true
+compositing-background = source
+compositing-foreground = over
+compositing-overline = over
+compositing-underline = over
+compositing-border = over
+pseudo-transparency = true
+enable-ipc = true
+wm-restack = bspwm
+
+
+;; --- BARRA PRINCIPAL ---
+
+[bar/main]
+monitor =
+monitor-fallback =
+monitor-strict = false
+fixed-center = true
+width = 100%
+height = 35
+offset-x = 0
+offset-y = 0
+background = ${color.bg}
+foreground = ${color.fg}
+radius-top = 0
+radius-bottom = 0
+line-size = 0
+line-color = ${color.ac}
+border-size = 0
+border-bottom-size = 0
+padding-left = 2
+padding-right = 2
+module-margin-left = 1
+module-margin-right = 1
+
+font-0 = "CaskaydiaMono Nerd Font Propo:size=10;2"
+font-1 = "CaskaydiaMono Nerd Font Propo:size=9;2"
+font-2 = "CaskaydiaMono Nerd Font Propo:bold:size=10;2"
+
+tray-position = none
+tray-padding = 0
+tray-maxsize = 14
+tray-background = ${color.bg}
+
+modules-left = workspaces sep xwindow
+modules-center = 
+modules-right = volume cpu memory temperature battery network xkeyboard date sep powermenu
+
+;;click-actions
+click-left = 
+click-right = 
+scroll-up = 
+scroll-down = 
+
+
+;; --- BARRA INFERIOR (opcional) ---
+
+[bar/bottom]
+inherit = bar/main
+bottom = true
+height = 24
+
+
+;; --- MODULOS ---
+
+;; Workspaces (escritorios) - ESTILO PACMAN
+[module/workspaces]
+type = internal/xworkspaces
+pin-workspaces = true
+enable-click = true
+enable-scroll = true
+format = <label-state>
+format-padding = 0
+
+label-active = " @ "
+label-active-foreground = ${color.yellow}
+label-active-background = #55000000
+label-active-overline = ${color.yellow}
+label-active-padding = 0
+
+label-occupied = " ● "
+label-occupied-foreground = ${color.red}
+label-occupied-background = #55000000
+label-occupied-padding = 0
+
+label-urgent = " ◉ "
+label-urgent-foreground = ${color.red}
+label-urgent-background = #55000000
+label-urgent-overline = ${color.red}
+label-urgent-padding = 0
+
+label-empty = " ○ "
+label-empty-foreground = ${color.gray}
+label-empty-background = #55000000
+label-empty-padding = 0
+
+
+;; Fecha
+[module/date]
+type = internal/date
+interval = 1.0
+time = %H:%M
+date = %a %b %d
+format = <label>
+format-foreground = ${color.fg}
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+label = %date% %time%
+
+
+;; Hora simple
+[module/clock]
+type = internal/date
+interval = 1.0
+time = %H:%M:%S
+format = <label>
+format-foreground = ${color.ac}
+label = %time%
+
+
+;; CPU
+[module/cpu]
+type = internal/cpu
+interval = 2
+format = <label>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+label = %percentage%%
+
+
+;; Memoria
+[module/memory]
+type = internal/memory
+interval = 2
+format = <label>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+label = %percentage_used%%
+
+
+;; Temperatura
+[module/temperature]
+type = internal/temperature
+interval = 2
+thermal-zone = 0
+warn-temperature = 80
+format = <label>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+format-warn = <label-warn>
+format-warn-foreground = ${color.red}
+label = %temperature%
+label-warn = %temperature%
+
+
+;; Volumen (PulseAudio)
+[module/volume]
+type = internal/pulseaudio
+format-volume = <label-volume>
+format-muted = <label-muted>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+format-muted-foreground = ${color.gray}
+label-volume = "_vol: %percentage%%"
+label-muted = "MUTE"
+click-right = pavucontrol
+
+
+;; Volumen (ALSA alternativo)
+[module/alsa]
+type = internal/alsa
+format-volume = <label-volume>
+format-muted = <label-muted>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+format-muted-foreground = ${color.gray}
+label-volume = "vol: %percentage%%"
+label-muted = "MUTE"
+
+
+;; Red/WiFi
+[module/network]
+type = internal/network
+interface = auto
+interval = 3.0
+format-connected = <label-connected>
+format-disconnected = <label-disconnected>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-connected-foreground = ${color.fg}
+format-disconnected-foreground = ${color.gray}
+label-connected = "%essid%"
+label-disconnected = "OFF"
+click-left = networkmanager_dmenu
+
+
+;; Red cableada
+[module/ethernet]
+type = internal/network
+interface = eth0
+interval = 3.0
+format-connected = <label-connected>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-connected-foreground = ${color.fg}
+label-connected = "ETH"
+
+
+;; Bateria
+[module/battery]
+type = internal/battery
+full-at = 100
+battery = BAT0
+adapter = AC
+poll-interval = 5
+
+format-charging = <animation-charging> <label-charging>
+format-discharging = <ramp-capacity> <label-discharging>
+format-full = <label-full>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+
+format-charging-foreground = ${color.fg}
+format-discharging-foreground = ${color.fg}
+format-full-foreground = ${color.green}
+
+label-charging = %percentage%%
+label-discharging = %percentage%%
+label-full = "FULL"
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+ramp-capacity-foreground = ${color.gray}
+
+animation-charging-0 = ⚡
+animation-charging-1 = ⚡
+animation-charging-2 = ⚡
+animation-charging-foreground = ${color.green}
+animation-charging-framerate = 750
+
+
+;; Teclado (XKeyboard)
+[module/xkeyboard]
+type = internal/xkeyboard
+blacklist-0 = num lock
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+label-layout = %layout%
+label-indicator-padding = 2
+label-indicator-background = ${color.ac}
+label-indicator-foreground = ${color.bg}
+
+
+;; Backlight (brillo de pantalla)
+[module/backlight]
+type = internal/backlight
+card = intel_backlight
+format = <label>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+label = "%percentage%%"
+
+
+;; Ventana activa (titulo)
+[module/xwindow]
+type = internal/xwindow
+format = <label>
+format-foreground = ${color.fg}
+format-padding = 2
+label-maxlen = 60
+label-empty = ""
+
+
+;; Menu de energia
+[module/powermenu]
+type = custom/menu
+label-open = "⏻"
+label-open-foreground = ${color.red}
+label-close = "✕"
+label-close-foreground = ${color.red}
+label-separator = " "
+
+menu-0-0 = Lock
+menu-0-0-foreground = ${color.yellow}
+menu-0-0-exec = loginctl lock-session
+menu-0-1 = Logout
+menu-0-1-foreground = ${color.red}
+menu-0-1-exec = pkill -KILL -u $USER
+menu-0-2 = Reboot
+menu-0-2-foreground = ${color.orange}
+menu-0-2-exec = sudo reboot
+menu-0-3 = Shutdown
+menu-0-3-foreground = ${color.red}
+menu-0-3-exec = sudo poweroff
+
+
+;; Separador
+[module/sep]
+type = custom/text
+content = "|"
+content-foreground = ${color.gray}
+content-font = 1
+
+[module/sep2]
+type = custom/text
+content = " "
+content-foreground = ${color.fg}
+
+[module/space]
+type = custom/text
+content = "   "
+
+
+;; MPD (reproductor de musica)
+[module/mpd]
+type = internal/mpd
+format-online = <label-time> <bar-progress> <label-song>
+format-offline = <label-offline>
+format-stopped = <label-offline>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+
+label-offline = "MPD: off"
+label-song = "%title%"
+label-song-maxlen = 40
+label-song-ellipsis = true
+
+icon-prev = "⏮"
+icon-stop = "⏹"
+icon-play = "▶"
+icon-pause = "⏸"
+icon-next = "⏭"
+
+toggle-on-foreground = ${color.green}
+toggle-off-foreground = ${color.gray}
+
+
+;; GitHub notifications (opcional)
+[module/github]
+type = internal/github
+token = 
+format = <label>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+label = "Git: %notifications%"
+
+
+;; Filesystem
+[module/fs]
+type = internal/fs
+mount-0 = /
+format-mounted = <label-mounted>
+format-unmounted = <label-unmounted>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+label-mounted = "/: %used%"
+label-unmounted = "/: --"
+
+
+;; Custom script (ejemplo)
+[module/script]
+type = custom/script
+exec = ~/.config/polybar/scripts/mymodule.sh
+interval = 5
+format = <label>
+format-prefix = " "
+format-prefix-foreground = ${color.gray}
+format-foreground = ${color.fg}
+
+
+;; ===========================================
+;;  FIN DE CONFIGURACION
+;; ===========================================
