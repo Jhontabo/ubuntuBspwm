@@ -7,7 +7,7 @@ Primero que nada actualiza el sistema antes de usar este escript con ```sudo apt
 1.- Uso del Script 
 
 ```
-git clone https://github.com/ZLCube/KaliBspwm.git
+git clone https://github.com/Jhontabo/KaliBspwm.git
 
 cd KaliBspwm
 
@@ -44,28 +44,28 @@ Si necesitas más ayuda con la configuración pica en la imagen que te lleva a m
 
 #===============================MIS-REDES==================================#
 
-Practicamente ZLCube en todos lados
+Practicamente Jhontabo en todos lados
 
-https://www.youtube.com/@zlcube9936
+https://www.youtube.com/@Jhontabo
 
-https://www.twitter.com/zlcube
+https://www.twitter.com/Jhontabo
 
-https://www.tiktok.com/@zlcube
+https://www.tiktok.com/@Jhontabo
 
-https://www.twitch.tv/zlcube
+https://www.twitch.tv/Jhontabo
 
-https://www.instagram.com/zlcube
+https://www.instagram.com/Jhontabo
 
 #=========================================================================#
 
 A continuación un ejemplo de cómo se ve visualmente, custom p10k, kitty terminal, zsh shell, custom wallpapers, i3lock, etc.
 
-![](https://github.com/ZLCube/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture1.PNG)
-![](https://github.com/ZLCube/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture111.PNG)
-![](https://github.com/ZLCube/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture11.PNG)
-![](https://github.com/ZLCube/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture2.PNG)
-![](https://github.com/ZLCube/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture3.PNG)
+![](https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture1.PNG)
+![](https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture111.PNG)
+![](https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture11.PNG)
+![](https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture2.PNG)
+![](https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture3.PNG)
 
 *P10K - P10K/Root*
 
-![](https://github.com/ZLCube/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture4.PNG)
+![](https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture4.PNG)
