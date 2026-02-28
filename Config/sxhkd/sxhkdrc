@@ -209,3 +209,16 @@ alt + shift + ctrl + b
 
 @Print + alt
         flameshot screen -c
+
+###############
+# Volume (F1-F3) #
+###############
+
+F1
+        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+
+F2
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+
+F3
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
