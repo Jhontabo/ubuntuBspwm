@@ -11,6 +11,6 @@ killall -q polybar
 while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
 
 # Lanzar barra principal con configuración Pac-Man
-polybar main -c ~/.config/polybar/pacman.ini &
+polybar main -c ~/.config/polybar/current.ini &
 
 echo "Polybar iniciada con estética Pac-Man"
