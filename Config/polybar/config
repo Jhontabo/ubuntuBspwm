@@ -1,428 +1,440 @@
-;; ===========================================
-;;  CONFIGURACION UNICA DE POLYBAR
-;; ===========================================
 
-;; --- COLORES ---
+; this config is probably written for an unreleased version
+; so it may or may not work for you
+;
 
-[color]
-bg = #99000000
-fg = #FFFFFF
-ac = #FEC006
-ghost = #7DCFFF
-trans = #00000000
-white = #FFFFFF
-black = #000000
-red = #e53935
-blue = #b1e3ff
-gray = #757575
-
-;; Colores Material adicionales
-purple = #8e24aa
-green = #43a047
-yellow = #FEC006
-orange = #F57C00
-pink = #d81b60
-light-purple = #CF9FFF
-cyan = #00acc1
-teal = #00897b
-
-
-;; --- CONFIGURACION GLOBAL ---
-
-[global/wm]
-margin-bottom = 0
-margin-top = 0
-
-
-;; --- SETTINGS ---
+[colors]
+background = #ccfafafa
+foreground = #444
+linecolor = #fb2e22
+bordercolor = #555
+accent = #e60053
 
 [settings]
-throttle-output = 5
-throttle-output-for = 10
-throttle-input-for = 30
+;throttle-output-for = 10
+;throttle-output = 5
+;throttle-input-for = 40
 screenchange-reload = true
-compositing-background = source
-compositing-foreground = over
-compositing-overline = over
-compositing-underline = over
-compositing-border = over
-pseudo-transparency = true
+;compositing-background = screen
+;compositing-foreground = xor
+;compositing-border = over
+
+[global/wm]
+margin-top = 0
+margin-bottom = 0
+
+[bar/top]
 enable-ipc = true
-wm-restack = bspwm
-
-
-;; --- BARRA PRINCIPAL ---
-
-[bar/main]
-monitor =
-monitor-fallback =
-monitor-strict = false
-fixed-center = true
+;monitor = ${env:MONITOR:eDP1}
 width = 100%
-height = 35
-offset-x = 0
-offset-y = 0
-background = ${color.bg}
-foreground = ${color.fg}
-radius-top = 0
-radius-bottom = 0
-line-size = 0
-line-color = ${color.ac}
-border-size = 0
-border-bottom-size = 0
-padding-left = 2
-padding-right = 2
-module-margin-left = 1
-module-margin-right = 1
-
-font-0 = "CaskaydiaMono Nerd Font Propo:size=10;2"
-font-1 = "CaskaydiaMono Nerd Font Propo:size=9;2"
-font-2 = "CaskaydiaMono Nerd Font Propo:bold:size=10;2"
-
-tray-position = none
-tray-padding = 0
-tray-maxsize = 14
-tray-background = ${color.bg}
-
-modules-left = workspaces sep xwindow
-modules-center = 
-modules-right = volume cpu memory temperature battery network xkeyboard date sep powermenu
-
-;;click-actions
-click-left = 
-click-right = 
-scroll-up = 
-scroll-down = 
-
-
-;; --- BARRA INFERIOR (opcional) ---
-
-[bar/bottom]
-inherit = bar/main
-bottom = true
 height = 24
 
+background = ${colors.background}
+foreground = ${colors.foreground}
 
-;; --- MODULOS ---
+underline-color = ${colors.linecolor}
+underline-size = 1
+overline-color = ${colors.linecolor}
+overline-size = 2
 
-;; Workspaces (escritorios) - ESTILO PACMAN
-[module/workspaces]
-type = internal/xworkspaces
+border-bottom-size = 1
+border-bottom-color = ${colors.bordercolor}
+
+padding-left = 0
+padding-right = 2
+module-margin-left = 1
+module-margin-right = 2
+
+font-0 = ypn envypn:size=10;2
+font-1 = siji:pixelsize=10;2
+font-2 = termsynu:size=8;2
+
+modules-left = bspwm i3
+;modules-center = mpd
+modules-center = xwindow
+modules-right = xkeyboard xbacklight volume wifi battery memory cpu date
+
+tray-position = right
+tray-padding = 4
+
+tray-maxsize = 16
+;tray-transparent = true
+;tray-detached = true
+;tray-offset-x = 50
+
+wm-restack = bspwm
+
+;dim-value = 0.2
+
+;click-left =
+;click-middle =
+;click-right =
+scroll-up = bspwm-deskprev
+scroll-down = bspwm-desknext
+;scroll-up = i3wm-wsnext
+;scroll-down = i3wm-wsprev
+;double-click-left = notify-send -u low doubleclick
+;double-click-right = notify-send -u low doubleclick2
+
+# bar/module specific vars
+bspwm-focused-overline = ${colors.linecolor}
+bspwm-focused-underline = #cc333333
+
+[bar/bottom]
+inherit = bar/top
+
+enable-ipc = true
+monitor = ${env:MONITOR:DP-2}
+bottom = true
+
+underline-size = ${bar/top.overline-size}
+overline-size = ${bar/top.underline-size}
+
+modules-left = bspwm i3
+modules-center =
+modules-right = github fs-root date power-menu
+
+wm-restack = ${bar/top.wm-restack}
+
+tray-position = none
+
+# bar/module specific vars
+;bspwm-focused-overline = #cc333333
+;bspwm-focused-underline = ${colors.linecolor}
+
+[module/github]
+type = internal/github
+token = ${file:/home/jaagr/.git-token}
+;empty-notifications = true
+label = %notifications%
+label-padding = 2
+label-background = #f0c209
+label-foreground = #000
+
+[module/fs-root]
+type = internal/fs
+mount-0 = /
+label-mounted = %{F#e60053}%percentage_used%%%{F-} used of %mountpoint%
+
+[module/bspwm]
+type = internal/bspwm
+enable-scroll = false
+format = <label-state> <label-mode>
+;format = <label-monitor> <label-state> <label-mode>
+;pin-workspaces = false
+
+ws-icon-0 = term;
+ws-icon-1 = web;
+ws-icon-2 = code;
+ws-icon-3 = music;
+ws-icon-4 = irssi;
+ws-icon-default = 
+
+inline-mode = true
+
+label-focused = %icon%
+label-focused-background = #fff
+label-focused-foreground = #383838
+label-focused-overline = ${root.bspwm-focused-overline}
+label-focused-padding = 2
+label-occupied = %icon%
+label-occupied-padding = 2
+label-occupied-foreground = #444
+label-urgent = %icon%
+label-urgent-background = #bd2c40
+label-urgent-padding = 2
+label-empty = %icon%
+label-empty-foreground = #55
+label-empty-padding = 2
+label-monocle = 
+label-monocle-padding = 2
+label-monocle-background = #171717
+label-monocle-foreground = ${colors.accent}
+label-floating = 
+label-floating-padding = 2
+label-floating-background = #171717
+label-floating-foreground = ${colors.accent}
+label-locked = locked
+label-locked-padding = 1
+label-sticky = sticky
+label-sticky-padding = 1
+label-private = private
+label-private-padding = 1
+;label-pseudotiled = pseudo
+;label-pseudotiled-padding = 2
+;label-pseudotiled-background = #f09
+;label-tiled = tiled
+;label-tiled-padding = 2
+;label-tiled-background = #f90
+label-dimmed-background = ${root.background}
+label-dimmed-overline = ${root.background}
+label-dimmed-underline = ${root.background}
+label-dimmed-active-foreground = #f00
+
+[module/i3]
+type = internal/i3
+index-sort = true
 pin-workspaces = true
-enable-click = true
-enable-scroll = true
-format = <label-state>
-format-padding = 0
+wrapping-scroll = true
+;reverse-scroll = false
+;enable-scroll = false
 
-label-active = " @ "
-label-active-foreground = ${color.yellow}
-label-active-background = #55000000
-label-active-overline = ${color.yellow}
-label-active-padding = 0
+format = <label-state> <label-mode>
 
-label-occupied = " ● "
-label-occupied-foreground = ${color.red}
-label-occupied-background = #55000000
-label-occupied-padding = 0
+label-mode = %mode%
+label-mode-padding = 2
+label-mode-background = ${colors.accent}
 
-label-urgent = " ◉ "
-label-urgent-foreground = ${color.red}
-label-urgent-background = #55000000
-label-urgent-overline = ${color.red}
-label-urgent-padding = 0
+label-focused = %index%
+label-focused-background = ${module/bspwm.label-focused-background}
+label-focused-foreground = ${module/bspwm.label-focused-foreground}
+label-focused-overline= ${module/bspwm.label-focused-overline}
+label-focused-underline= ${module/bspwm.label-focused-underline}
+label-focused-padding = ${module/bspwm.label-focused-padding}
+label-unfocused = %index%
+label-unfocused-padding = ${module/bspwm.label-occupied-padding}
+label-urgent = %index%!
+label-urgent-background = ${module/bspwm.label-urgent-background}
+label-urgent-padding = ${module/bspwm.label-urgent-padding}
+label-visible = %index%
+label-visible-padding = ${module/bspwm.label-empty-padding}
 
-label-empty = " ○ "
-label-empty-foreground = ${color.gray}
-label-empty-background = #55000000
-label-empty-padding = 0
-
-
-;; Fecha
-[module/date]
-type = internal/date
-interval = 1.0
-time = %H:%M
-date = %a %b %d
-format = <label>
-format-foreground = ${color.fg}
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-label = %date% %time%
-
-
-;; Hora simple
-[module/clock]
-type = internal/date
-interval = 1.0
-time = %H:%M:%S
-format = <label>
-format-foreground = ${color.ac}
-label = %time%
-
-
-;; CPU
 [module/cpu]
 type = internal/cpu
 interval = 2
-format = <label>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
 label = %percentage%%
+format-prefix = " "
+format-prefix-foreground = #666
 
-
-;; Memoria
 [module/memory]
 type = internal/memory
 interval = 2
-format = <label>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
 label = %percentage_used%%
+format-prefix = " "
+format-prefix-foreground = #666
 
+[module/wifi]
+type = internal/network
+interface = net1
+interval = 3.0
+;udspeed-minwidth = 0
 
-;; Temperatura
-[module/temperature]
-type = internal/temperature
-interval = 2
-thermal-zone = 0
-warn-temperature = 80
-format = <label>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-format-warn = <label-warn>
-format-warn-foreground = ${color.red}
-label = %temperature%
-label-warn = %temperature%
+format-connected = <ramp-signal> <label-connected>
+format-connected-prefix = " "
+format-connected-prefix-foreground = #666
+format-connected-prefix-offset = -6
+label-connected = %downspeed:8%
 
+;format-disconnected = <label-disconnected>
+;format-disconnected-prefix = " "
+;format-disconnected-prefix-foreground = #666
+;label-disconnected = not connected
+;label-disconnected-foreground = #999
 
-;; Volumen (PulseAudio)
+ramp-signal-0 = 
+ramp-signal-1 = 
+ramp-signal-2 = 
+ramp-signal-3 = 
+ramp-signal-4 = 
+ramp-signal-foreground = #666
+
+[module/wired]
+type = internal/network
+interface = net0
+interval = 3.0
+
+format-connected-prefix = " "
+format-connected-prefix-foreground = #666
+label-connected = %local_ip%
+
+;format-disconnected = <label-disconnected>
+;format-disconnected-prefix = " "
+;format-disconnected-prefix-foreground = #666
+;label-disconnected = not connected
+;label-disconnected-foreground = #999
+
+[module/date]
+type = internal/date
+label = %{F#666}%{F-} %date%  %{F#e60053}%{F-} %time%
+date = %Y-%m-%d
+time = %H:%M
+interval = 5
+
+[module/xbacklight]
+type = internal/xbacklight
+format = <ramp> <label>
+ramp-0 = 
+ramp-1 = 
+ramp-2 = 
+ramp-foreground = #666
+label-foreground = ${root.foreground}
+
 [module/volume]
-type = internal/pulseaudio
-format-volume = <label-volume>
-format-muted = <label-muted>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-format-muted-foreground = ${color.gray}
-label-volume = "_vol: %percentage%%"
-label-muted = "MUTE"
-click-right = pavucontrol
+type = internal/volume
+speaker-mixer = Speaker
+headphone-mixer = Headphone
+headphone-id = 9
 
+format-volume = <ramp-volume> <label-volume>
+label-volume = %percentage%%
+label-volume-foreground = ${root.foreground}
 
-;; Volumen (ALSA alternativo)
-[module/alsa]
-type = internal/alsa
-format-volume = <label-volume>
-format-muted = <label-muted>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-format-muted-foreground = ${color.gray}
-label-volume = "vol: %percentage%%"
-label-muted = "MUTE"
+format-muted-prefix = " "
+format-muted-foreground = #777
+label-muted = sound muted
 
+ramp-volume-0 = 
+ramp-volume-1 = 
+ramp-volume-2 = 
+ramp-volume-3 = 
+ramp-volume-foreground = #666
 
-;; Red/WiFi
-[module/network]
-type = internal/network
-interface = auto
-interval = 3.0
-format-connected = <label-connected>
-format-disconnected = <label-disconnected>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-connected-foreground = ${color.fg}
-format-disconnected-foreground = ${color.gray}
-label-connected = "%essid%"
-label-disconnected = "OFF"
-click-left = networkmanager_dmenu
+ramp-headphones-0 = 
+ramp-headphones-1 = 
+ramp-headphones-foreground = #666
 
-
-;; Red cableada
-[module/ethernet]
-type = internal/network
-interface = eth0
-interval = 3.0
-format-connected = <label-connected>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-connected-foreground = ${color.fg}
-label-connected = "ETH"
-
-
-;; Bateria
 [module/battery]
 type = internal/battery
-full-at = 100
-battery = BAT0
-adapter = AC
-poll-interval = 5
+full-at = 98
+time-format = %H:%M
 
 format-charging = <animation-charging> <label-charging>
+label-charging = %percentage%% %time%
+
 format-discharging = <ramp-capacity> <label-discharging>
+label-discharging = %percentage%% %time%
+
 format-full = <label-full>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
+format-full-prefix = " "
+format-full-prefix-foreground = #666
 
-format-charging-foreground = ${color.fg}
-format-discharging-foreground = ${color.fg}
-format-full-foreground = ${color.green}
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-foreground = #666
 
-label-charging = %percentage%%
-label-discharging = %percentage%%
-label-full = "FULL"
-
-ramp-capacity-0 = 
-ramp-capacity-1 = 
-ramp-capacity-2 = 
-ramp-capacity-3 = 
-ramp-capacity-4 = 
-ramp-capacity-foreground = ${color.gray}
-
-animation-charging-0 = ⚡
-animation-charging-1 = ⚡
-animation-charging-2 = ⚡
-animation-charging-foreground = ${color.green}
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-foreground = #666
 animation-charging-framerate = 750
 
+;[module/battery-multi]
+;type = custom/script
+;exec = "count=$(acpi -b | wc -l); sum=$(acpi -b | egrep -o '[0-9]{1,3}%' | tr -d '%' | xargs -I% echo -n '+%'); echo $(date +%s) Avg capacity: $(( sum / count ))%"
+;exec-if = pgrep -x watch
+;interval = 3
 
-;; Teclado (XKeyboard)
+[module/mpd]
+type = internal/mpd
+
+;format-online = <label-time>  <bar-progress>  <label-song>  <icon-prev> <icon-stop> <toggle> <icon-next>  <icon-repeat> <icon-random>
+format-online = <label-time> %{F#88}|%{F-} <label-song> <icon-prev><icon-stop><toggle><icon-next> <icon-repeat><icon-random>
+format-online-spacing = 0
+format-online-background = #ee333333
+format-online-underline = #cc333333
+format-online-padding = 3
+
+format-offline = <label-offline>
+format-offline-foreground = #777
+
+label-offline = mpd is off
+
+label-song-maxlen = 45
+label-song-ellipsis = true
+
+label-time-foreground = #777
+
+icon-prev = 
+icon-stop = 
+icon-play = 
+icon-pause = 
+icon-next = 
+
+icon-random = 
+icon-repeat = 
+
+toggle-on-foreground = ${colors.accent}
+toggle-off-foreground = #777
+
+;bar-progress-width = 10
+;bar-progress-indicator = 
+;bar-progress-indicator-foreground = #bb
+;bar-progress-fill = ─
+;bar-progress-fill-foreground = #bb
+;bar-progress-fill-font = 3
+;bar-progress-empty = ─
+;bar-progress-empty-foreground = #44
+;bar-progress-empty-font = 3
+
+[module/power-menu]
+type = custom/menu
+
+label-open = 
+label-close = 
+label-separator = /
+label-separator-margin = 1
+
+menu-0-0 = Terminate WM
+menu-0-0-foreground = ${colors.accent}
+menu-0-0-exec = bspc quit -1
+menu-0-1 = Reboot
+menu-0-1-foreground = ${colors.accent}
+menu-0-1-exec = menu-open-1
+menu-0-2 = Power off
+menu-0-2-foreground = ${colors.accent}
+menu-0-2-exec = menu-open-2
+menu-0-3 = Lock
+menu-0-3-foreground = ${colors.accent}
+menu-0-3-exec = lockscreen
+
+menu-1-0 = Cancel
+menu-1-0-foreground = ${colors.accent}
+menu-1-0-exec = menu-open-0
+menu-1-1 = Reboot
+menu-1-1-foreground = ${colors.accent}
+menu-1-1-exec = sudo reboot
+
+menu-2-0 = Power off
+menu-2-0-foreground = ${colors.accent}
+menu-2-0-exec = sudo poweroff
+menu-2-1 = Cancel
+menu-2-1-foreground = ${colors.accent}
+menu-2-1-exec = menu-open-0
+
+[module/app-menu]
+type = custom/menu
+label-open = 
+label-close = 
+
+menu-0-0 = Vimperator
+menu-0-0-exec = web
+menu-0-1 = Termite
+menu-0-1-exec = termite
+menu-0-2 = Pcmanfm
+menu-0-2-exec = pcmanfm
+
 [module/xkeyboard]
 type = internal/xkeyboard
+
 blacklist-0 = num lock
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
+
+format-prefix = " "
+format-prefix-foreground = #666
+
 label-layout = %layout%
+
 label-indicator-padding = 2
-label-indicator-background = ${color.ac}
-label-indicator-foreground = ${color.bg}
+label-indicator-background = ${colors.accent}
 
-
-;; Backlight (brillo de pantalla)
-[module/backlight]
-type = internal/backlight
-card = intel_backlight
-format = <label>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-label = "%percentage%%"
-
-
-;; Ventana activa (titulo)
 [module/xwindow]
 type = internal/xwindow
 format = <label>
-format-foreground = ${color.fg}
-format-padding = 2
-label-maxlen = 60
-label-empty = ""
+label-maxlen = 75
 
+[module/counter]
+type = internal/counter
+format = <counter>
+interval = 0.1
 
-;; Menu de energia
-[module/powermenu]
-type = custom/menu
-label-open = "⏻"
-label-open-foreground = ${color.red}
-label-close = "✕"
-label-close-foreground = ${color.red}
-label-separator = " "
-
-menu-0-0 = Lock
-menu-0-0-foreground = ${color.yellow}
-menu-0-0-exec = loginctl lock-session
-menu-0-1 = Logout
-menu-0-1-foreground = ${color.red}
-menu-0-1-exec = pkill -KILL -u $USER
-menu-0-2 = Reboot
-menu-0-2-foreground = ${color.orange}
-menu-0-2-exec = sudo reboot
-menu-0-3 = Shutdown
-menu-0-3-foreground = ${color.red}
-menu-0-3-exec = sudo poweroff
-
-
-;; Separador
-[module/sep]
-type = custom/text
-content = "|"
-content-foreground = ${color.gray}
-content-font = 1
-
-[module/sep2]
-type = custom/text
-content = " "
-content-foreground = ${color.fg}
-
-[module/space]
-type = custom/text
-content = "   "
-
-
-;; MPD (reproductor de musica)
-[module/mpd]
-type = internal/mpd
-format-online = <label-time> <bar-progress> <label-song>
-format-offline = <label-offline>
-format-stopped = <label-offline>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-
-label-offline = "MPD: off"
-label-song = "%title%"
-label-song-maxlen = 40
-label-song-ellipsis = true
-
-icon-prev = "⏮"
-icon-stop = "⏹"
-icon-play = "▶"
-icon-pause = "⏸"
-icon-next = "⏭"
-
-toggle-on-foreground = ${color.green}
-toggle-off-foreground = ${color.gray}
-
-
-;; GitHub notifications (opcional)
-[module/github]
-type = internal/github
-token = 
-format = <label>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-label = "Git: %notifications%"
-
-
-;; Filesystem
-[module/fs]
-type = internal/fs
-mount-0 = /
-format-mounted = <label-mounted>
-format-unmounted = <label-unmounted>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-label-mounted = "/: %used%"
-label-unmounted = "/: --"
-
-
-;; Custom script (ejemplo)
-[module/script]
-type = custom/script
-exec = ~/.config/polybar/scripts/mymodule.sh
-interval = 5
-format = <label>
-format-prefix = " "
-format-prefix-foreground = ${color.gray}
-format-foreground = ${color.fg}
-
-
-;; ===========================================
-;;  FIN DE CONFIGURACION
-;; ===========================================
+; vim:ft=dosini

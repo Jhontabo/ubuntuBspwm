@@ -157,3 +157,5 @@ export PATH="/home/hacker/flutter/flutter/bin:$PATH"
 
 alias dev='npm run dev'
 alias pas='php artisan serve'
+alias brain='~/rclone-drive/brain.sh'
+
