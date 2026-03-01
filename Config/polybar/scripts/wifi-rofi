@@ -1,0 +1,61 @@
+#!/bin/bash
+
+INTERFACE=$(nmcli -t -f DEVICE,TYPE dev | grep ':wifi$' | cut -d: -f1 | head -1)
+
+if [ -z "$INTERFACE" ]; then
+    notify-send "WiFi" "No se encontró interfaz WiFi"
+    exit 1
+fi
+
+get_status() {
+    if nmcli -t -f DEVICE,STATE dev status | grep -q "$INTERFACE:connected"; then
+        SSID=$(nmcli -t -f NAME dev wifi list | head -1)
+        echo "connected:$SSID"
+    else
+        echo "disconnected"
+    fi
+}
+
+scan_wifi() {
+    nmcli dev wifi rescan > /dev/null 2>&1
+    sleep 2
+    nmcli -t -f IN-USE,SIGNAL,SSID dev wifi list | grep -v '^--'
+}
+
+STATUS=$(get_status)
+
+if [ "$STATUS" = "disconnected" ]; then
+    CHOICE=$(echo -e "Encender WiFi" | rofi -dmenu -p "WiFi" -i -width 25 -lines 1)
+    if [ "$CHOICE" = "Encender WiFi" ]; then
+        nmcli dev wifi on
+    fi
+else
+    IFS=':' read -r STATE SSID <<< "$STATUS"
+    
+    OPTIONS="Desconectar\n"
+    
+    while IFS=: read -r INUSE SIG S; do
+        if [ -n "$S" ]; then
+            if [ "$INUSE" = "*" ]; then
+                OPTIONS="${OPTIONS}󰤯 $S (conectado)\n"
+            else
+                OPTIONS="${OPTIONS}󰤨 $S\n"
+            fi
+        fi
+    done < <(scan_wifi)
+    
+    CHOICE=$(echo -e "$OPTIONS" | rofi -dmenu -p "WiFi: $SSID" -i -width 30 -lines 8)
+    
+    if [ -z "$CHOICE" ]; then
+        exit 0
+    fi
+    
+    if [ "$CHOICE" = "Desconectar" ]; then
+        nmcli dev disconnect "$INTERFACE"
+    elif [[ "$CHOICE" == *"("* ]]; then
+        notify-send "WiFi" "Ya conectado"
+    else
+        TARGET_SSID=$(echo "$CHOICE" | sed 's/^.*  //' | sed 's/ (conectado)//')
+        nmcli dev wifi connect "$TARGET_SSID"
+    fi
+fi

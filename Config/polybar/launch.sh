@@ -8,7 +8,7 @@
 killall -q polybar
 
 # Esperar hasta que los procesos se hayan cerrado completamente
-while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
+while pgrep -x polybar >/dev/null; do sleep 1; done
 
 # Lanzar barra principal con configuración Pac-Man
 polybar main -c ~/.config/polybar/pacman.ini &

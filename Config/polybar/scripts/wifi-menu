@@ -1,0 +1,92 @@
+#!/bin/bash
+
+INTERFACE=$(nmcli -t -f DEVICE,TYPE dev | grep ':wifi$' | cut -d: -f1 | head -1)
+
+if [ -z "$INTERFACE" ]; then
+    notify-send "WiFi" "No se encontró interfaz WiFi"
+    exit 1
+fi
+
+scan_wifi() {
+    nmcli dev wifi rescan > /dev/null 2>&1
+    sleep 2
+    nmcli -t -f IN-USE,SIGNAL,SSID,SECURITY dev wifi list | grep -v '^--' | while read -r line; do
+        IN_USE=$(echo "$line" | cut -d: -f1)
+        SIGNAL=$(echo "$line" | cut -d: -f2)
+        SSID=$(echo "$line" | cut -d: -f3-)
+        
+        if [ -z "$SSID" ]; then
+            continue
+        fi
+        
+        if [ "$IN_USE" = "*" ]; then
+            echo " 󰤯 $SSID (conectado)"
+        elif [ "$SIGNAL" -ge 80 ]; then
+            echo " 󰤨 $SSID"
+        elif [ "$SIGNAL" -ge 60 ]; then
+            echo " 󰤥 $SSID"
+        elif [ "$SIGNAL" -ge 40 ]; then
+            echo " 󰤢 $SSID"
+        else
+            echo " 󰤟 $SSID"
+        fi
+    done
+}
+
+connect_wifi() {
+    SSID="$1"
+    
+    if nmcli -t -f NAME dev wifi list | grep -q "^${SSID}$"; then
+        CONNECTED=$(nmcli -t -f NAME dev wifi list | head -1)
+        if [ "$CONNECTED" = "$SSID" ]; then
+            notify-send "WiFi" "Ya conectado a $SSID"
+            return
+        fi
+        
+        nmcli dev wifi connect "$SSID" > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            notify-send "WiFi" "Conectado a $SSID"
+        else
+            notify-send "WiFi" "Error al conectar a $SSID"
+        fi
+    else
+        if [ "$SSID" = "Apagar WiFi" ]; then
+            nmcli dev disconnect "$INTERFACE" > /dev/null 2>&1
+            notify-send "WiFi" "WiFi desconectado"
+        elif [ "$SSID" = "Recargar redes" ]; then
+            scan_wifi
+        fi
+    fi
+}
+
+toggle_wifi() {
+    if nmcli -t -f DEVICE,STATE dev status | grep -q "$INTERFACE:connected"; then
+        nmcli dev disconnect "$INTERFACE" > /dev/null 2>&1
+        notify-send "WiFi" "WiFi desconectado"
+    else
+        nmcli dev wifi on > /dev/null 2>&1
+        scan_wifi
+    fi
+}
+
+case "$1" in
+    --status)
+        if nmcli -t -f DEVICE,STATE dev status | grep -q "$INTERFACE:connected"; then
+            echo "󰤯 Conectado"
+        else
+            echo "󰤭 Desconectado"
+        fi
+        ;;
+    --scan)
+        scan_wifi
+        ;;
+    --connect)
+        connect_wifi "$2"
+        ;;
+    --toggle)
+        toggle_wifi
+        ;;
+    *)
+        echo "Uso: $0 {--status|--scan|--connect|--toggle}"
+        ;;
+esac
