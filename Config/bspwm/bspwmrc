@@ -22,6 +22,7 @@ bspc config border_width "$CURRENT_BORDER"
 bspc config window_gap "$CURRENT_GAP"
 bspc config split_ratio "$CURRENT_SRATIO"
 bspc config top_padding 28
+bspc config bottom_padding 0
 bspc config focused_border_color "#00BFFF"
 
 # RESOLUCION ARANDR
