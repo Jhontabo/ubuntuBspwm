@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+
+NETWORKS=$(timeout 3 nmcli -t -f SSID dev wifi list 2>/dev/null | head -15)
+
+[ -z "$NETWORKS" ] && NETWORKS="No networks"
+
+CHOICE=$(echo "$NETWORKS" | /usr/bin/rofi -dmenu -p "WiFi" -i 2>/dev/null)
+
+[ -z "$CHOICE" ] && exit 0
+
+/usr/bin/nmcli dev wifi connect "$CHOICE" 2>/dev/null &
