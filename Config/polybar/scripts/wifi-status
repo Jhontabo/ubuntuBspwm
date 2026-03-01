@@ -3,13 +3,13 @@
 INTERFACE=$(nmcli -t -f DEVICE,TYPE dev | grep ':wifi$' | cut -d: -f1 | head -1)
 
 if [ -z "$INTERFACE" ]; then
-    echo "󰤭"
+    echo ""
     exit 0
 fi
 
 if nmcli -t -f DEVICE,STATE dev status | grep -q "$INTERFACE:connected"; then
     SIGNAL=$(nmcli -t -f IN-USE,SIGNAL dev wifi list | grep '\*' | cut -d: -f2)
-    echo ""
+    echo " ${SIGNAL}%"
 else
-    echo "󰤭"
+    echo ""
 fi
