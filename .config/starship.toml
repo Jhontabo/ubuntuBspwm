@@ -1,0 +1,125 @@
+# Starship Configuration - Modern & Clean
+# https://starship.rs/config/
+
+# Add $HOME/.local/bin to PATH for starship
+$HOME/.local/bin
+
+format = """
+[┌───────────────────────────────────────────────────](bold green)
+[│](bold green)$directory$rust$python$nodejs$golang$java$kubectl$git_branch$git_status
+[└─>](bold green) $character"""
+
+# Disable the package module, it's useless for most users
+[package]
+disabled = true
+
+# Prompt character configuration
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[✗](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+
+# Directory configuration
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path]($style)[$read_only]($read_only_style) "
+style = "bold cyan"
+read_only = " 🔒"
+read_only_style = "red"
+home_symbol = "~"
+
+# Git branch configuration
+[git_branch]
+symbol = " "
+format = "on [$symbol$branch]($style) "
+style = "bold purple"
+
+# Git status configuration
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+style = "bold yellow"
+conflicted = "⚔️ "
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "🤷"
+stashed = "📦"
+modified = "📝"
+staged = '[++\($count\)](green)'
+renamed = "👅"
+deleted = "🗑"
+
+# Rust configuration
+[rust]
+symbol = " "
+format = "via [$symbol$version]($style) "
+style = "bold red"
+
+# Python configuration
+[python]
+symbol = " "
+format = "via [$symbol$virtualenv]($style) "
+style = "bold yellow"
+python_binary = "python3"
+
+# Node.js configuration
+[nodejs]
+symbol = " "
+format = "via [$symbol$version]($style) "
+style = "bold green"
+
+# Golang configuration
+[golang]
+symbol = " "
+format = "via [$symbol$version]($style) "
+style = "bold cyan"
+
+# Java configuration
+[java]
+symbol = " "
+format = "via [$symbol$version]($style) "
+style = "bold red"
+
+# Kubernetes configuration
+[kubectl]
+format = "via [$symbol$context]($style) "
+style = "bold blue"
+symbol = "☸ "
+
+# Time configuration
+[time]
+disabled = false
+format = "at [$time]($style) "
+style = "bold yellow"
+time_format = "%T"
+utc_time_offset = "local"
+
+# AWS configuration
+[aws]
+symbol = " "
+format = 'on [$symbol($profile )(\($region\) )]($style)'
+style = "bold yellow"
+
+# Docker context
+[docker_context]
+symbol = " "
+format = "via [$symbol$context]($style) "
+style = "bold blue"
+
+# Enable verbose instant prompt for powerlevel10k compatibility
+# This helps if you're migrating from p10k
+invocation_interval = 0
+$common = ""
+
+# Custom commands - can add your own
+[custom.brain]
+command = "~/rclone-drive/brain.sh"
+when = "test -f ~/rclone-drive/brain.sh"
+symbol = "🧠 "
+style = "bold purple"
+format = "[$symbol$output]($style) "
+
+# Line break
+[line_break]
+disabled = false
