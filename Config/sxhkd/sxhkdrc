@@ -4,7 +4,7 @@
 
 # terminal emulator
 alt + Return
-	/opt/kitty/bin/kitty
+	/usr/bin/kitty
 
 # i3lock 
 shift + l
@@ -13,7 +13,7 @@ shift + l
 
 # program launcher
 alt + d
-  rofi -show drun -show-icons -drun-display-format 
+	rofi -show drun -show-icons
 
 # make sxhkd reload its configuration files:
 alt + Escape
@@ -191,7 +191,7 @@ alt + e
 
 # browser
 alt + b
-	firefox
+	xdg-open https://www.mozilla.org
 
 # BurpSuite
 alt + shift + ctrl + b

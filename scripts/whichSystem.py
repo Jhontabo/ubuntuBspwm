@@ -1,42 +1,47 @@
-#!/usr/bin/python3
-#coding: utf-8
+#!/usr/bin/env python3
+# coding: utf-8
 
-import re, sys, subprocess
+import re
+import subprocess
+import sys
 
-# python3 wichSystem.py 10.10.10.188 
 
 if len(sys.argv) != 2:
-    print("\n[!] Uso: python3 " + sys.argv[0] + " <direccion-ip>\n")
+    print(f"\n[!] Uso: {sys.argv[0]} <direccion-ip>\n")
     sys.exit(1)
 
-def get_ttl(ip_address):
 
-    proc = subprocess.Popen(["/usr/bin/ping -c 1 %s" % ip_address, ""], stdout=subprocess.PIPE, shell=True)
-    (out,err) = proc.communicate()
+def get_ttl(ip_address: str) -> int:
+    proc = subprocess.run(
+        ["/usr/bin/ping", "-c", "1", ip_address],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    output = proc.stdout + proc.stderr
 
-    out = out.split()
-    out = out[12].decode('utf-8')
+    match = re.search(r"ttl[=|:](\\d+)", output, re.IGNORECASE)
+    if not match:
+        raise RuntimeError("No se pudo obtener TTL. Verifica conectividad/IP.")
 
-    ttl_value = re.findall(r"\d{1,3}", out)[0]
+    return int(match.group(1))
 
-    return ttl_value
 
-def get_os(ttl):
-
-    ttl = int(ttl)
-
-    if ttl >= 0 and ttl <= 64:
+def detect_os(ttl: int) -> str:
+    if 0 <= ttl <= 64:
         return "Linux"
-    elif ttl >= 65 and ttl <= 128:
+    if 65 <= ttl <= 128:
         return "Windows"
-    else:
-        return "Not Found"
+    return "Not Found"
 
-if __name__ == '__main__':
 
+if __name__ == "__main__":
     ip_address = sys.argv[1]
+    try:
+        ttl_value = get_ttl(ip_address)
+    except RuntimeError as exc:
+        print(f"\n[!] {exc}\n")
+        sys.exit(1)
 
-    ttl = get_ttl(ip_address)
-
-    os_name = get_os(ttl)
-    print("\n\t%s (ttl -> %s): %s" % (ip_address, ttl, os_name))
+    os_name = detect_os(ttl_value)
+    print(f"\n\t{ip_address} (ttl -> {ttl_value}): {os_name}")

@@ -1,9 +1,10 @@
 #!/bin/sh
 
-IFACE=$(/usr/sbin/ifconfig | grep tun0 | awk '{print $1}' | tr -d ':')
+IFACE="$(ip -o link show | awk -F': ' '{print $2}' | grep '^tun0$' || true)"
 
 if [ "$IFACE" = "tun0" ]; then
-	echo "%{F#7dcfff} %{F#ffffff}$(/usr/sbin/ifconfig tun0 | grep "inet " | awk '{print $2}')%{u-}"
+	TUN_IP="$(ip -o -4 addr show dev tun0 | awk '{print $4}' | cut -d/ -f1 | head -n1)"
+	echo "%{F#7dcfff} %{F#ffffff}${TUN_IP}%{u-}"
 else
 	echo "%{F#7dcfff}%{u-} Disconnected"
 fi

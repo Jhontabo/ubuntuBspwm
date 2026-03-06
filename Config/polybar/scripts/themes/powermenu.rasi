@@ -1,0 +1,24 @@
+* {
+  background: #2F343F;
+  foreground: #FFFFFF;
+  accent: #00CED1;
+}
+window {
+  width: 20%;
+  border: 2;
+  border-color: @accent;
+  border-radius: 8;
+  background-color: @background;
+}
+listview {
+  lines: 5;
+  background-color: @background;
+}
+element {
+  padding: 8;
+  text-color: @foreground;
+}
+element selected {
+  background-color: @accent;
+  text-color: @background;
+}

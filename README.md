@@ -27,18 +27,20 @@ sudo apt update && sudo apt upgrade -y
 
 ### Required Dependencies
 
-This configuration is designed for **Debian/Ubuntu-based distributions**. The install script will attempt to install most dependencies, but you may need to install the following manually:
+This configuration is designed for **Debian/Ubuntu-based distributions**.  
+`install.sh` now installs dependencies automatically for both:
 
-- BSPWM
-- SXHKD
-- Kitty
-- ZSH
-- Oh My Zsh
-- Rofi
-- polybar (optional)
-- picom (compton)
-- Nitrogen (wallpaper manager)
-- fonts (nerd-fonts recommended)
+- Ubuntu Desktop
+- Ubuntu Server (clean install, adding Xorg + LightDM when needed)
+
+Main components installed by script:
+
+- BSPWM + SXHKD
+- Polybar + Picom
+- Kitty + Rofi
+- ZSH + Powerlevel10k
+- NetworkManager + tools used by included scripts
+- Fonts included in this repository
 
 ## Installation
 
@@ -105,6 +107,8 @@ After installation:
 1. Log out and select BSPWM as your window manager (or restart X)
 2. Open a terminal and verify everything is working
 3. Customize colors, keybindings, and themes to your preference
+4. On Ubuntu Server without desktop session, enable LightDM:
+   `sudo systemctl enable --now lightdm`
 
 ## Customization
 

@@ -1,143 +1,185 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ "$(whoami)" == "root" ]; then
-    exit 1
+set -euo pipefail
+
+if [[ "${EUID}" -eq 0 ]]; then
+  echo "[!] No ejecutes este script como root. Usa tu usuario normal con sudo habilitado."
+  exit 1
 fi
 
-ruta=$(pwd)
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+BACKUP_DIR="$HOME/.config-backup-ubuntuBspwm-$(date +%Y%m%d-%H%M%S)"
 
-# Instalando dependencias de Entorno
+log() { printf '[+] %s\n' "$*"; }
+warn() { printf '[!] %s\n' "$*"; }
 
-sudo apt install -y build-essential git vim xcb libxcb-util0-dev libxcb-ewmh-dev libxcb-randr0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-xinerama0-dev libasound2-dev libxcb-xtest0-dev libxcb-shape0-dev
+package_installed() {
+  dpkg -s "$1" >/dev/null 2>&1
+}
 
-# Instalando Requerimientos para la polybar
+install_packages() {
+  local pkgs=()
+  local pkg
 
-sudo apt install -y cmake cmake-data pkg-config python3-sphinx libcairo2-dev libxcb1-dev libxcb-util0-dev libxcb-randr0-dev libxcb-composite0-dev python3-xcbgen xcb-proto libxcb-image0-dev libxcb-ewmh-dev libxcb-icccm4-dev libxcb-xkb-dev libxcb-xrm-dev libxcb-cursor-dev libasound2-dev libpulse-dev libjsoncpp-dev libmpdclient-dev libuv1-dev libnl-genl-3-dev
+  for pkg in "$@"; do
+    if ! package_installed "$pkg"; then
+      pkgs+=("$pkg")
+    fi
+  done
 
-# Dependencias de Picom
+  if (( ${#pkgs[@]} > 0 )); then
+    sudo apt install -y "${pkgs[@]}"
+  fi
+}
 
-sudo apt install -y meson picom libxext-dev libxcb1-dev libxcb-damage0-dev libxcb-xfixes0-dev libxcb-shape0-dev libxcb-render-util0-dev libxcb-render0-dev libxcb-composite0-dev libxcb-image0-dev libxcb-present-dev libxcb-xinerama0-dev libpixman-1-dev libdbus-1-dev libconfig-dev libgl1-mesa-dev libpcre2-dev libevdev-dev uthash-dev libev-dev libx11-xcb-dev libxcb-glx0-dev libpcre3 libpcre3-dev
+backup_path() {
+  local target="$1"
+  if [[ -e "$target" || -L "$target" ]]; then
+    mkdir -p "$BACKUP_DIR"
+    cp -a "$target" "$BACKUP_DIR/"
+  fi
+}
 
-# Instalamos paquetes adionales
+copy_config_dir() {
+  local src="$1"
+  local dst="$2"
 
-sudo apt install -y kitty feh scrot scrub rofi xclip bat locate ranger neofetch wmname acpi bspwm sxhkd imagemagick cmatrix
+  if [[ ! -d "$src" ]]; then
+    warn "No existe directorio de origen: $src"
+    return
+  fi
 
-# Creando carpeta de Reposistorios
+  backup_path "$dst"
+  rm -rf "$dst"
+  mkdir -p "$(dirname "$dst")"
+  cp -a "$src" "$dst"
+}
 
-mkdir ~/github
+copy_file_if_exists() {
+  local src="$1"
+  local dst="$2"
 
-# Descargar Repositorios Necesarios
+  if [[ -f "$src" ]]; then
+    backup_path "$dst"
+    cp -f "$src" "$dst"
+  else
+    warn "No existe archivo: $src"
+  fi
+}
 
-cd ~/github
-git clone --recursive https://github.com/polybar/polybar
-git clone https://github.com/ibhagwan/picom.git
+log "Actualizando índices APT..."
+sudo apt update
 
-# Instalando Polybar
+log "Instalando paquetes base y entorno BSPWM..."
+install_packages \
+  apt-transport-https ca-certificates curl wget git unzip build-essential \
+  xorg xinit dbus-x11 policykit-1 \
+  bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
+  kitty thunar flameshot network-manager net-tools \
+  pipewire wireplumber alsa-utils pulseaudio-utils \
+  zsh zsh-syntax-highlighting zsh-autosuggestions \
+  xdg-utils \
+  imagemagick cmatrix ranger neofetch scrub \
+  libnotify-bin plocate
 
-cd ~/github/polybar
-mkdir build
-cd build
-cmake ..
-make -j$(nproc)
-sudo make install
+if ! package_installed lightdm && ! package_installed gdm3 && ! package_installed sddm; then
+  log "No se detectó display manager instalado, agregando LightDM..."
+  install_packages lightdm lightdm-gtk-greeter
+fi
 
-# Instalando Picom
+if package_installed i3lock-color; then
+  :
+elif apt-cache show i3lock-color >/dev/null 2>&1; then
+  install_packages i3lock-color
+else
+  install_packages i3lock
+fi
 
-cd ~/github/picom
-git submodule update --init --recursive
-meson --buildtype=release . build
-ninja -C build
-sudo ninja -C build install
+if systemctl list-unit-files 2>/dev/null | grep -q '^NetworkManager\\.service'; then
+  sudo systemctl enable --now NetworkManager >/dev/null 2>&1 || true
+fi
 
-# Instalando p10k
+if ! systemctl list-unit-files 2>/dev/null | grep -q '^display-manager\.service'; then
+  warn "No se detecta display manager activo. Si estás en Ubuntu Server limpio, habilita lightdm manualmente."
+fi
 
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.powerlevel10k
-echo 'source ~/.powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
+log "Copiando configuraciones a ~/.config ..."
+mkdir -p "$HOME/.config"
+copy_config_dir "$SCRIPT_DIR/Config/bspwm" "$HOME/.config/bspwm"
+copy_config_dir "$SCRIPT_DIR/Config/sxhkd" "$HOME/.config/sxhkd"
+copy_config_dir "$SCRIPT_DIR/Config/picom" "$HOME/.config/picom"
+copy_config_dir "$SCRIPT_DIR/Config/polybar" "$HOME/.config/polybar"
+copy_config_dir "$SCRIPT_DIR/Config/bin" "$HOME/.config/bin"
+copy_config_dir "$SCRIPT_DIR/Config/kitty" "$HOME/.config/kitty"
+copy_config_dir "$SCRIPT_DIR/rofi" "$HOME/.config/rofi"
 
-# Instalando p10k root
+log "Copiando wallpapers y utilidades..."
+mkdir -p "$HOME/Wallpaper" "$HOME/ScreenShots"
+if [[ -d "$SCRIPT_DIR/Wallpaper" ]]; then
+  cp -af "$SCRIPT_DIR/Wallpaper/." "$HOME/Wallpaper/"
+fi
 
-sudo git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.powerlevel10k
+sudo install -m 0755 "$SCRIPT_DIR/scripts/whichSystem.py" /usr/local/bin/whichSystem.py
+sudo install -m 0755 "$SCRIPT_DIR/scripts/screenshot" /usr/local/bin/screenshot
 
-# Configuramos el tema Nord de Rofi:
+log "Instalando fuentes en el usuario..."
+mkdir -p "$HOME/.local/share/fonts"
+if [[ -d "$SCRIPT_DIR/fonts/HNF" ]]; then
+  cp -af "$SCRIPT_DIR/fonts/HNF/." "$HOME/.local/share/fonts/"
+fi
+fc-cache -fv >/dev/null || true
 
-mkdir -p ~/.config/rofi/themes
-cp $ruta/rofi/nord.rasi ~/.config/rofi/themes/
+log "Configurando ZSH y Powerlevel10k..."
+if [[ ! -d "$HOME/.powerlevel10k" ]]; then
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$HOME/.powerlevel10k"
+fi
 
-# Instando lsd
+if [[ -f "$SCRIPT_DIR/.zshrc" ]]; then
+  copy_file_if_exists "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+else
+  cat > "$HOME/.zshrc" <<'ZSHRC'
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -r ~/.powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/.powerlevel10k/powerlevel10k.zsh-theme
+ZSHRC
+fi
 
-sudo dpkg -i $ruta/lsd.deb
+if [[ -f "$SCRIPT_DIR/.p10k.zsh" ]]; then
+  copy_file_if_exists "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
+fi
 
-# Instalamos las HackNerdFonts
+if ! grep -q 'powerlevel10k.zsh-theme' "$HOME/.zshrc" 2>/dev/null; then
+  cat >> "$HOME/.zshrc" <<'APPEND'
+[[ -r ~/.powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/.powerlevel10k/powerlevel10k.zsh-theme
+APPEND
+fi
 
-sudo cp -v $ruta/fonts/HNF/* /usr/local/share/fonts/
+if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]]; then
+  chsh -s "$(command -v zsh)" "$USER" || warn "No se pudo cambiar shell automáticamente. Ejecuta: chsh -s $(command -v zsh)"
+fi
 
-# Instalando Fuentes de Polybar
+log "Asignando permisos de ejecución..."
+chmod +x "$HOME/.config/bspwm/bspwmrc" \
+         "$HOME/.config/bspwm/scripts/bspwm_resize" \
+         "$HOME/.config/bin/ethernet_status.sh" \
+         "$HOME/.config/bin/htb_status.sh" \
+         "$HOME/.config/bin/htb_target.sh" \
+         "$HOME/.config/polybar/launch.sh"
 
-sudo cp -v $ruta/Config/polybar/fonts/* /usr/share/fonts/truetype/
+if command -v notify-send >/dev/null 2>&1; then
+  notify-send "BSPWM" "Instalación completada"
+fi
 
-# Instalando Wallpaper de S4vitar
+cat <<'MSG'
 
-mkdir ~/Wallpaper
-cp -v $ruta/Wallpaper/* ~/Wallpaper
-mkdir ~/ScreenShots
+Instalación finalizada.
 
-# Copiando Archivos de Configuración
+Siguientes pasos recomendados:
+1) Reiniciar sesión y seleccionar BSPWM en el display manager.
+2) Si estás en Ubuntu Server sin entorno gráfico, habilita LightDM:
+   sudo systemctl enable --now lightdm
+3) Verifica dependencias clave:
+   bspwm --version && sxhkd -v && polybar --version && picom --version
 
-rm -r ~/.config/polybar
-cp -rv $ruta/Config/* ~/.config/
-sudo cp -rv $ruta/kitty /opt/
-
-# Copia de configuracion de .p10k.zsh y .zshrc
-
-rm -rf ~/.zshrc
-cp -v $ruta/.zshrc ~/.zshrc
-
-cp -v $ruta/.p10k.zsh ~/.p10k.zsh
-sudo cp -v $ruta/.p10k.zsh-root /root/.p10k.zsh
-
-# Script
-
-sudo cp -v $ruta/scripts/whichSystem.py /usr/local/bin/
-sudo cp -v $ruta/scripts/screenshot /usr/local/bin/
-
-# Plugins ZSH
-
-sudo apt install -y zsh-syntax-highlighting zsh-autosuggestions
-sudo mkdir /usr/share/zsh-sudo
-cd /usr/share/zsh-sudo
-sudo wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/plugins/sudo/sudo.plugin.zsh
-
-# Cambiando de SHELL a zsh
-
-sudo ln -s -fv ~/.zshrc /root/.zshrc
-
-# Asignamos Permisos a los Scritps
-
-chmod +x ~/.config/bspwm/bspwmrc
-chmod +x ~/.config/bspwm/scripts/bspwm_resize
-chmod +x ~/.config/bin/ethernet_status.sh
-chmod +x ~/.config/bin/htb_status.sh
-chmod +x ~/.config/bin/htb_target.sh
-chmod +x ~/.config/polybar/launch.sh
-sudo chmod +x /usr/local/bin/whichSystem.py
-sudo chmod +x /usr/local/bin/screenshot
-
-# Configuramos el Tema de Rofi
-
-rofi-theme-selector
-
-# Instalamos el i3lock
-
-sudo apt install -y i3lock-color
-cd $ruta
-sudo cp -R $ruta/Components/i3lock-color-everblush/i3lock-everblush /usr/bin
-xfconf-query --create -c xfce4-session -p /general/LockCommand -t string -s "i3lock-everblush"
-
-# Removiendo Repositorio
-
-rm -rf ~/github
-rm -rfv $ruta
-
-# Mensaje de Instalado
-
-notify-send "BSPWM INSTALADO"
+MSG

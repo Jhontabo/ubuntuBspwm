@@ -1,0 +1,9 @@
+configuration {
+    modi: "drun,run,window";
+    show-icons: true;
+    drun-display-format: "{name}";
+    display-drun: "Apps";
+    font: "Hack Nerd Font 12";
+}
+
+@theme "themes/nord"
