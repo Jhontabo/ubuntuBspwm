@@ -222,3 +222,19 @@ F2
 
 F3
         wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+
+###############
+# Spotify #
+###############
+
+XF86AudioNext
+	playerctl -p spotify next
+
+XF86AudioPrev
+	playerctl -p spotify previous
+
+XF86AudioPlay
+	playerctl -p spotify play-pause
+
+XF86AudioStop
+	playerctl -p spotify pause

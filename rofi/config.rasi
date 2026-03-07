@@ -1,9 +1,10 @@
+//@theme "/usr/share/rofi/themes/arthur.rasi"
+//@theme "/usr/share/rofi/themes/DarkBlue.rasi"
+@theme "/home/hacker/.config/rofi/themes/spotlight-dark.rasi"
+
 configuration {
     modi: "drun,run,window";
     show-icons: true;
-    drun-display-format: "{name}";
-    display-drun: "Apps";
-    font: "Hack Nerd Font 12";
+    icon-theme: "Papirus";
+    drun-match-fields: "name";
 }
-
-@theme "themes/nord"

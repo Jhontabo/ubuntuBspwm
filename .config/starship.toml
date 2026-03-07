@@ -1,125 +1,99 @@
-# Starship Configuration - Modern & Clean
-# https://starship.rs/config/
+# Dracula Theme for Starship
+# https://draculatheme.com/starship
 
-# Add $HOME/.local/bin to PATH for starship
-$HOME/.local/bin
+palette = "dracula"
+
+add_newline = true
 
 format = """
-[┌───────────────────────────────────────────────────](bold green)
-[│](bold green)$directory$rust$python$nodejs$golang$java$kubectl$git_branch$git_status
-[└─>](bold green) $character"""
+$directory$php$nodejs$python$rust$golang$java$git_branch$git_status$character"""
 
-# Disable the package module, it's useless for most users
-[package]
-disabled = true
+[aws]
+style = "bold orange"
 
-# Prompt character configuration
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[✗](bold red)"
-vimcmd_symbol = "[❮](bold green)"
+format = "$symbol "
+error_symbol = "[λ](bold red)"
+success_symbol = "[λ](bold green)"
 
-# Directory configuration
+[cmd_duration]
+style = "bold yellow"
+
 [directory]
+style = "bold green"
 truncation_length = 3
-truncate_to_repo = true
-format = "[$path]($style)[$read_only]($read_only_style) "
-style = "bold cyan"
-read_only = " 🔒"
-read_only_style = "red"
 home_symbol = "~"
 
-# Git branch configuration
 [git_branch]
+format = " [$symbol$branch]($style)"
 symbol = " "
-format = "on [$symbol$branch]($style) "
-style = "bold purple"
+style = "bold pink"
 
-# Git status configuration
 [git_status]
-format = '([\[$all_status$ahead_behind\]]($style) )'
-style = "bold yellow"
-conflicted = "⚔️ "
-ahead = "⇡${count}"
-behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
-untracked = "🤷"
-stashed = "📦"
-modified = "📝"
-staged = '[++\($count\)](green)'
-renamed = "👅"
-deleted = "🗑"
-
-# Rust configuration
-[rust]
-symbol = " "
-format = "via [$symbol$version]($style) "
 style = "bold red"
+format = "([$all_status]($style))"
 
-# Python configuration
+[hostname]
+style = "bold purple"
+format = "[$hostname]($style) "
+
+[username]
+format = "[$user]($style) on "
+style_user = "bold cyan"
+
 [python]
-symbol = " "
-format = "via [$symbol$virtualenv]($style) "
+symbol = "🐍 "
+format = "via [$symbol$version]($style) "
 style = "bold yellow"
-python_binary = "python3"
+version_format = "${raw}"
+detect_files = ["requirements.txt", "pyproject.toml", "Pipfile", ".python-version"]
 
-# Node.js configuration
 [nodejs]
-symbol = " "
+symbol = "⬢ "
 format = "via [$symbol$version]($style) "
 style = "bold green"
+version_format = "${raw}"
+detect_files = ["package.json", "package-lock.json", "yarn.lock"]
+detect_folders = ["node_modules"]
 
-# Golang configuration
-[golang]
-symbol = " "
-format = "via [$symbol$version]($style) "
-style = "bold cyan"
-
-# Java configuration
-[java]
-symbol = " "
+[rust]
+symbol = "🦀 "
 format = "via [$symbol$version]($style) "
 style = "bold red"
+version_format = "${raw}"
+detect_files = ["Cargo.toml", "Cargo.lock"]
 
-# Kubernetes configuration
-[kubectl]
-format = "via [$symbol$context]($style) "
-style = "bold blue"
-symbol = "☸ "
+[golang]
+symbol = "🐹 "
+format = "via [$symbol$version]($style) "
+style = "bold cyan"
+version_format = "${raw}"
+detect_files = ["go.mod", "go.sum"]
 
-# Time configuration
-[time]
-disabled = false
-format = "at [$time]($style) "
-style = "bold yellow"
-time_format = "%T"
-utc_time_offset = "local"
+[java]
+symbol = "☕ "
+format = "via [$symbol$version]($style) "
+style = "bold red"
+version_format = "${raw}"
+detect_files = ["pom.xml", "build.gradle", "build.gradle.kts"]
 
-# AWS configuration
-[aws]
-symbol = " "
-format = 'on [$symbol($profile )(\($region\) )]($style)'
-style = "bold yellow"
-
-# Docker context
-[docker_context]
-symbol = " "
-format = "via [$symbol$context]($style) "
-style = "bold blue"
-
-# Enable verbose instant prompt for powerlevel10k compatibility
-# This helps if you're migrating from p10k
-invocation_interval = 0
-$common = ""
-
-# Custom commands - can add your own
-[custom.brain]
-command = "~/rclone-drive/brain.sh"
-when = "test -f ~/rclone-drive/brain.sh"
-symbol = "🧠 "
+[php]
+symbol = "🐘 "
+format = "via [$symbol$version]($style) "
 style = "bold purple"
-format = "[$symbol$output]($style) "
+version_format = "${raw}"
+detect_files = ["composer.json"]
 
-# Line break
-[line_break]
-disabled = false
+# Define Dracula color palette
+[palettes.dracula]
+background = "#282a36"
+current_line = "#44475a"
+foreground = "#f8f8f2"
+comment = "#6272a4"
+cyan = "#8be9fd"
+green = "#50fa7b"
+orange = "#ffb86c"
+pink = "#ff79c6"
+purple = "#bd93f9"
+red = "#ff5555"
+yellow = "#f1fa8c"
