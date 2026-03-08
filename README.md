@@ -1,164 +1,75 @@
-# KaliBspwm - Pacman/Arcade Theme Dotfiles
+# ubuntuBspwm
 
-<p align="center">
-  <img src="https://github.com/Jhontabo/KaliBspwm/blob/main/Design%20preview%20(Useless)/Picture4.PNG" alt="KaliBspwm Preview">
-</p>
+Pacman/arcade-themed BSPWM dotfiles for Ubuntu/Debian, with an automated installer and a full desktop setup (BSPWM, SXHKD, Polybar, Picom, Kitty, Rofi, Zsh + Powerlevel10k, custom scripts, wallpapers, and fonts).
 
-A highly customized BSPWM configuration with a Pacman/Arcade theme, inspired by Kali Linux aesthetics. This repository contains my personal dotfiles including window manager (BSPWM), terminal (Kitty), shell (ZSH with Oh My Zsh), launcher (Rofi), and more.
+## Desktop Preview
+
+![Desktop Preview 1](./Wallpaper/test.png)
+![Desktop Preview 2](./Wallpaper/a.png)
+![Desktop Preview 3](./Wallpaper/archkali.png)
 
 ## Features
 
-- **Window Manager**: BSPWM with custom keybindings (sxhkd)
-- **Terminal**: Kitty with custom theming
-- **Shell**: ZSH with Oh My Zsh, Powerlevel10k theme
-- **Application Launcher**: Rofi with arcade-style configuration
-- **File Browser**: lsd (Rust-based ls replacement)
-- **Custom Scripts**: Useful scripts for system management
-- **Wallpapers**: Curated collection of wallpapers
-- **Fonts**: Custom fonts for terminal and UI
+- BSPWM + SXHKD tiling setup
+- Polybar and Picom preconfigured
+- Kitty + Rofi themed configuration
+- Zsh with Powerlevel10k
+- Included custom scripts (`screenshot`, `whichSystem.py`, polybar helpers)
+- Built-in wallpaper and font collection
+- One-command installer for Ubuntu/Desktop and Ubuntu/Server scenarios
 
-## Prerequisites
+## Requirements
 
-Before installing, make sure your system is up to date:
-
-```bash
-sudo apt update && sudo apt upgrade -y
-```
-
-### Required Dependencies
-
-This configuration is designed for **Debian/Ubuntu-based distributions**.  
-`install.sh` now installs dependencies automatically for both:
-
-- Ubuntu Desktop
-- Ubuntu Server (clean install, adding Xorg + LightDM when needed)
-
-Main components installed by script:
-
-- BSPWM + SXHKD
-- Polybar + Picom
-- Kitty + Rofi
-- ZSH + Powerlevel10k
-- NetworkManager + tools used by included scripts
-- Fonts included in this repository
+- Debian/Ubuntu-based distro
+- `sudo` access
+- Internet connection for package installation
 
 ## Installation
 
-### Quick Install
-
 ```bash
-# Clone the repository
-git clone https://github.com/Jhontabo/KaliBspwm.git
-
-# Navigate to the directory
-cd KaliBspwm
-
-# Make the install script executable
+git clone https://github.com/Jhontabo/ubuntuBspwm.git
+cd ubuntuBspwm
 chmod +x install.sh
-
-# Run the installer
 ./install.sh
 ```
 
-### Manual Installation
+## What `install.sh` Does
 
-If you prefer to install manually:
-
-```bash
-# Create backup of your existing dotfiles (optional but recommended)
-mkdir -p ~/.config/bkp
-cp -r ~/.config/bspwm ~/.config/bkp/ 2>/dev/null
-cp -r ~/.config/sxhkd ~/.config/bkp/ 2>/dev/null
-cp ~/.zshrc ~/.config/bkp/ 2>/dev/null
-
-# Copy configuration files
-cp -r Config/* ~/.config/
-cp .zshrc ~/
-cp .p10k.zsh ~/
-
-# Copy additional files
-cp -r kitty ~/.config/
-cp -r rofi ~/.config/
-cp -r scripts ~/
-cp -r Wallpaper ~/Pictures/
-```
+- Installs required packages (BSPWM, SXHKD, Polybar, Picom, Kitty, Rofi, Zsh, etc.)
+- Adds LightDM automatically if no display manager is detected
+- Copies repo configs to `~/.config`
+- Installs wallpapers to `~/Wallpaper`
+- Installs included fonts to `~/.local/share/fonts`
+- Installs helper scripts to `/usr/local/bin`
+- Configures Zsh + Powerlevel10k
+- Creates backups of existing configs before replacing them
 
 ## Repository Structure
 
+```text
+ubuntuBspwm/
+├── Config/          # bspwm, sxhkd, polybar, picom, kitty, and helper configs
+├── Components/      # extra components (e.g., lockscreen assets)
+├── fonts/           # bundled fonts
+├── kitty/           # extra kitty config files
+├── rofi/            # rofi config and themes
+├── scripts/         # utility scripts
+├── Wallpaper/       # wallpapers and preview images
+├── install.sh       # main installer
+├── sync.sh          # sync helper
+├── .zshrc
+└── .p10k.zsh
 ```
-KaliBspwm/
-├── Config/              # Configuration files for bspwm, sxhkd, etc.
-├── Components/         # Additional components and utilities
-├── fonts/              # Custom fonts
-├── kitty/              # Kitty terminal configuration
-├── rofi/               # Rofi launcher configuration
-├── scripts/            # Custom shell scripts
-├── Wallpaper/          # Wallpaper collection
-├── install.sh          # Installation script
-├── sync.sh             # Sync script for updating
-├── .zshrc              # ZSH configuration
-└── .p10k.zsh           # Powerlevel10k configuration
-```
 
-## Post-Installation
+## Post-Install
 
-After installation:
-
-1. Log out and select BSPWM as your window manager (or restart X)
-2. Open a terminal and verify everything is working
-3. Customize colors, keybindings, and themes to your preference
-4. On Ubuntu Server without desktop session, enable LightDM:
+1. Log out and select **BSPWM** from your login manager.
+2. If you installed on Ubuntu Server, enable LightDM:
    `sudo systemctl enable --now lightdm`
-
-## Customization
-
-### Keybindings
-
-Edit `~/.config/sxhkd/sxhkdrc` to customize keyboard shortcuts.
-
-### Theme Colors
-
-Colors are defined in:
-- `~/.config/bspwm/bspwmrc`
-- `~/.config/rofi/config.rasi`
-- `~/.config/kitty/kitty.conf`
-
-### Terminal Font
-
-Install Nerd Fonts for best experience:
-```bash
-# Or use the fonts included in this repository
-```
-
-## Troubleshooting
-
-### Black screen after login
-- Check if BSPWM is installed: `which bspwm`
-- Check X11 logs: `cat ~/.local/share/bspwm/logs`
-- Try starting sxhkd manually: `sxhkd &`
-
-### Terminal not displaying correctly
-- Ensure Kitty is installed: `kitty --version`
-- Check font configuration in `~/.config/kitty/kitty.conf`
-
-### Rofi not working
-- Verify rofi installation: `rofi --version`
-- Check configuration in `~/.config/rofi/`
+3. Verify core tools:
+   `bspwm --version && sxhkd -v && polybar --version && picom --version`
 
 ## Credits
 
 - Original concept based on [ZLCubewm](https://github.com/ZLCubewm)
-- Theme inspired by Kali Linux
-- Arcade/Pacman aesthetic customization
-
-## Screenshots
-
-More screenshots available in `Design preview (Useless)/` folder.
-
-## License
-
-Personal dotfiles - Feel free to use and modify for your own setup.
-
----
-
-If you find these dotfiles useful, please consider starring the repository!
+- Theme style inspired by Kali/arcade aesthetics
