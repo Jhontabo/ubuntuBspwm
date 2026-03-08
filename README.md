@@ -4,9 +4,10 @@ Pacman/arcade-themed BSPWM dotfiles for Ubuntu/Debian, with an automated install
 
 ## Desktop Preview
 
-![Desktop Preview 1](./Wallpaper/test.png)
-![Desktop Preview 2](./Wallpaper/a.png)
-![Desktop Preview 3](./Wallpaper/archkali.png)
+![Desktop Preview 1](./screenshots/desktop-01.png)
+![Desktop Preview 2](./screenshots/desktop-02.png)
+![Desktop Preview 3](./screenshots/desktop-03.png)
+![Desktop Preview 4](./screenshots/desktop-04.png)
 
 ## Features
 
@@ -54,7 +55,8 @@ ubuntuBspwm/
 ├── kitty/           # extra kitty config files
 ├── rofi/            # rofi config and themes
 ├── scripts/         # utility scripts
-├── Wallpaper/       # wallpapers and preview images
+├── screenshots/     # desktop preview images used in README
+├── Wallpaper/       # wallpaper collection
 ├── install.sh       # main installer
 ├── sync.sh          # sync helper
 ├── .zshrc
