@@ -27,6 +27,18 @@ Pacman/arcade-themed BSPWM dotfiles for Ubuntu/Debian, with an automated install
 
 ## Installation
 
+### Quick Install (`wget` / `curl`)
+
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/Jhontabo/ubuntuBspwm/main/bootstrap.sh)
+```
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Jhontabo/ubuntuBspwm/main/bootstrap.sh)
+```
+
+### Standard Install (`git clone`)
+
 ```bash
 git clone https://github.com/Jhontabo/ubuntuBspwm.git
 cd ubuntuBspwm
@@ -65,6 +77,7 @@ ubuntuBspwm/
 ├── scripts/         # utility scripts
 ├── screenshots/     # desktop preview images used in README
 ├── Wallpaper/       # wallpaper collection
+├── bootstrap.sh     # quick installer entrypoint for wget/curl
 ├── install.sh       # main installer
 ├── uninstall.sh     # uninstall helper (removes files + restores latest backup)
 ├── sync.sh          # sync helper
