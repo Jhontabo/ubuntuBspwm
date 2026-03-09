@@ -34,6 +34,14 @@ chmod +x install.sh
 ./install.sh
 ```
 
+## Uninstall
+
+```bash
+cd ubuntuBspwm
+chmod +x uninstall.sh
+./uninstall.sh
+```
+
 ## What `install.sh` Does
 
 - Installs required packages (BSPWM, SXHKD, Polybar, Picom, Kitty, Rofi, Zsh, etc.)
@@ -58,6 +66,7 @@ ubuntuBspwm/
 ├── screenshots/     # desktop preview images used in README
 ├── Wallpaper/       # wallpaper collection
 ├── install.sh       # main installer
+├── uninstall.sh     # uninstall helper (removes files + restores latest backup)
 ├── sync.sh          # sync helper
 ├── .zshrc
 └── .p10k.zsh
