@@ -2,6 +2,8 @@
 
 Pacman/arcade-themed BSPWM dotfiles for Ubuntu/Debian, with an automated installer and a full desktop setup (BSPWM, SXHKD, Polybar, Picom, Kitty, Rofi, Zsh + Powerlevel10k, custom scripts, wallpapers, and fonts).
 
+This setup is based on [ZLCube/KaliBspwm](https://github.com/ZLCube/KaliBspwm), adapted and extended for this repository.
+
 ## Desktop Preview
 
 ![Desktop Preview 1](./screenshots/desktop-01.png)
@@ -95,5 +97,5 @@ ubuntuBspwm/
 
 ## Credits
 
-- Original concept based on [ZLCubewm](https://github.com/ZLCubewm)
+- Base repository: [ZLCube/KaliBspwm](https://github.com/ZLCube/KaliBspwm)
 - Theme style inspired by Kali/arcade aesthetics
