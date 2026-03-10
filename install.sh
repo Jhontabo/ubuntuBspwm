@@ -126,6 +126,8 @@ install_packages \
 
 install_optional_packages \
   flameshot pipewire wireplumber cmatrix ranger neofetch scrub \
+  papirus-icon-theme \
+  fonts-font-awesome \
   libnotify-bin
 
 if ! package_installed lightdm && ! package_installed gdm3 && ! package_installed sddm; then

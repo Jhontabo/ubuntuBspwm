@@ -6,14 +6,9 @@
 alt + Return
 	/usr/bin/kitty
 
-# i3lock 
-shift + l
-	/usr/bin/i3lock-everblush
-
-
 # program launcher
 alt + d
-	rofi -show drun -show-icons
+	rofi -show drun -show-icons -theme ~/.config/rofi/themes/nord.rasi
 
 # make sxhkd reload its configuration files:
 alt + Escape
