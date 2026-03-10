@@ -12,23 +12,56 @@ BACKUP_DIR="$HOME/.config-backup-ubuntuBspwm-$(date +%Y%m%d-%H%M%S)"
 
 log() { printf '[+] %s\n' "$*"; }
 warn() { printf '[!] %s\n' "$*"; }
+die() { printf '[x] %s\n' "$*" >&2; exit 1; }
 
 package_installed() {
   dpkg -s "$1" >/dev/null 2>&1
 }
 
+package_available() {
+  apt-cache show "$1" >/dev/null 2>&1
+}
+
 install_packages() {
+  local pkgs=()
+  local missing=()
+  local pkg
+
+  for pkg in "$@"; do
+    if ! package_available "$pkg"; then
+      missing+=("$pkg")
+      continue
+    fi
+    if ! package_installed "$pkg"; then
+      pkgs+=("$pkg")
+    fi
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    die "Paquetes requeridos no disponibles en APT: ${missing[*]}"
+  fi
+
+  if (( ${#pkgs[@]} > 0 )); then
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y "${pkgs[@]}"
+  fi
+}
+
+install_optional_packages() {
   local pkgs=()
   local pkg
 
   for pkg in "$@"; do
+    if ! package_available "$pkg"; then
+      warn "Paquete opcional no disponible, se omite: $pkg"
+      continue
+    fi
     if ! package_installed "$pkg"; then
       pkgs+=("$pkg")
     fi
   done
 
   if (( ${#pkgs[@]} > 0 )); then
-    sudo apt install -y "${pkgs[@]}"
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y "${pkgs[@]}"
   fi
 }
 
@@ -70,30 +103,37 @@ copy_file_if_exists() {
 log "Actualizando índices APT..."
 sudo apt update
 
+if [[ -r /etc/os-release ]]; then
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  if [[ "${ID:-}" == "ubuntu" ]] && ! grep -RhsE '^[^#].*ubuntu.com/ubuntu.*[[:space:]]universe([[:space:]]|$)' /etc/apt/sources.list /etc/apt/sources.list.d/*.list >/dev/null 2>&1; then
+    log "Habilitando repositorio universe (Ubuntu)..."
+    install_packages software-properties-common
+    sudo add-apt-repository -y universe
+    sudo apt update
+  fi
+fi
+
 log "Instalando paquetes base y entorno BSPWM..."
 install_packages \
   apt-transport-https ca-certificates curl wget git unzip build-essential \
   xorg xinit dbus-x11 policykit-1 \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
-  kitty thunar flameshot network-manager net-tools \
-  pipewire wireplumber alsa-utils pulseaudio-utils \
+  kitty thunar network-manager net-tools \
+  alsa-utils pulseaudio-utils \
   zsh zsh-syntax-highlighting zsh-autosuggestions \
-  xdg-utils \
-  imagemagick cmatrix ranger neofetch scrub \
-  libnotify-bin plocate
+  xdg-utils imagemagick plocate
+
+install_optional_packages \
+  flameshot pipewire wireplumber cmatrix ranger neofetch scrub \
+  libnotify-bin
 
 if ! package_installed lightdm && ! package_installed gdm3 && ! package_installed sddm; then
   log "No se detectó display manager instalado, agregando LightDM..."
   install_packages lightdm lightdm-gtk-greeter
 fi
 
-if package_installed i3lock-color; then
-  :
-elif apt-cache show i3lock-color >/dev/null 2>&1; then
-  install_packages i3lock-color
-else
-  install_packages i3lock
-fi
+install_packages i3lock
 
 if systemctl list-unit-files 2>/dev/null | grep -q '^NetworkManager\\.service'; then
   sudo systemctl enable --now NetworkManager >/dev/null 2>&1 || true
@@ -167,8 +207,8 @@ chmod +x "$HOME/.config/bspwm/bspwmrc" \
          "$HOME/.config/bin/htb_target.sh" \
          "$HOME/.config/polybar/launch.sh"
 
-if command -v notify-send >/dev/null 2>&1; then
-  notify-send "BSPWM" "Instalación completada"
+if command -v notify-send >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+  notify-send "BSPWM" "Instalación completada" || true
 fi
 
 cat <<'MSG'
