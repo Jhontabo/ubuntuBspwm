@@ -1,4 +1,4 @@
-//@theme "~/.config/rofi/themes/nord.rasi"
+@theme "~/.config/rofi/themes/spotlight-dark.rasi"
 
 configuration {
     modi: "drun,run,window";
@@ -6,4 +6,3 @@ configuration {
     icon-theme: "Papirus";
     drun-match-fields: "name";
 }
-@theme "/home/hacker/.local/share/rofi/themes/spotlight-dark.rasi"

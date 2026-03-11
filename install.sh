@@ -149,6 +149,26 @@ EOF
   fi
 }
 
+ensure_rofi_theme_config() {
+  local rofi_cfg="$HOME/.config/rofi/config.rasi"
+  local theme_spotlight="$HOME/.config/rofi/themes/spotlight-dark.rasi"
+  local theme_nord="$HOME/.config/rofi/themes/nord.rasi"
+
+  if [[ ! -f "$rofi_cfg" ]]; then
+    return
+  fi
+
+  sed -i \
+    -e 's|@theme "/home/hacker/.local/share/rofi/themes/spotlight-dark.rasi"|@theme "~/.config/rofi/themes/spotlight-dark.rasi"|g' \
+    -e 's|@theme "~/.local/share/rofi/themes/spotlight-dark.rasi"|@theme "~/.config/rofi/themes/spotlight-dark.rasi"|g' \
+    "$rofi_cfg"
+
+  if [[ ! -f "$theme_spotlight" && -f "$theme_nord" ]]; then
+    warn "Rofi spotlight theme not found, switching to nord theme."
+    sed -i 's|@theme "~/.config/rofi/themes/spotlight-dark.rasi"|@theme "~/.config/rofi/themes/nord.rasi"|g' "$rofi_cfg"
+  fi
+}
+
 backup_path() {
   local target="$1"
   if [[ -e "$target" || -L "$target" ]]; then
@@ -262,6 +282,7 @@ copy_config_dir "$SCRIPT_DIR/Config/polybar" "$HOME/.config/polybar"
 copy_config_dir "$SCRIPT_DIR/Config/bin" "$HOME/.config/bin"
 copy_config_dir "$SCRIPT_DIR/Config/kitty" "$HOME/.config/kitty"
 copy_config_dir "$SCRIPT_DIR/rofi" "$HOME/.config/rofi"
+ensure_rofi_theme_config
 
 log "Copying wallpapers and utilities..."
 mkdir -p "$HOME/Wallpaper" "$HOME/ScreenShots"
