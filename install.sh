@@ -101,6 +101,36 @@ install_lsd() {
   warn "Could not install lsd (APT package unavailable and local .deb failed)."
 }
 
+configure_lightdm_bspwm() {
+  log "Installing and configuring LightDM with BSPWM as default session..."
+  install_packages lightdm lightdm-gtk-greeter
+
+  sudo mkdir -p /etc/lightdm/lightdm.conf.d
+  sudo tee /etc/lightdm/lightdm.conf.d/50-ubuntuBspwm.conf >/dev/null <<'EOF'
+[Seat:*]
+greeter-session=lightdm-gtk-greeter
+user-session=bspwm
+session-wrapper=/etc/X11/Xsession
+EOF
+
+  cat > "$HOME/.dmrc" <<'EOF'
+[Desktop]
+Session=bspwm
+EOF
+  chmod 0644 "$HOME/.dmrc"
+
+  if systemctl list-unit-files 2>/dev/null | grep -q '^gdm3\.service'; then
+    sudo systemctl disable gdm3 >/dev/null 2>&1 || true
+  fi
+  if systemctl list-unit-files 2>/dev/null | grep -q '^sddm\.service'; then
+    sudo systemctl disable sddm >/dev/null 2>&1 || true
+  fi
+
+  echo "/usr/sbin/lightdm" | sudo tee /etc/X11/default-display-manager >/dev/null
+  sudo systemctl enable lightdm >/dev/null 2>&1 || true
+  sudo systemctl set-default graphical.target >/dev/null 2>&1 || true
+}
+
 backup_path() {
   local target="$1"
   if [[ -e "$target" || -L "$target" ]]; then
@@ -179,10 +209,7 @@ install_optional_packages \
   fonts-font-awesome \
   libnotify-bin
 
-if ! package_installed lightdm && ! package_installed gdm3 && ! package_installed sddm; then
-  log "No display manager detected, installing LightDM..."
-  install_packages lightdm lightdm-gtk-greeter
-fi
+configure_lightdm_bspwm
 
 install_packages i3lock
 install_lsd
@@ -249,6 +276,15 @@ source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 ZSHRC
 fi
 
+if ! grep -q '^\[\[ \$- != \*i\* \]\] && return$' "$HOME/.zshrc" 2>/dev/null; then
+  tmp_zshrc="$(mktemp)"
+  {
+    echo '[[ $- != *i* ]] && return'
+    cat "$HOME/.zshrc"
+  } > "$tmp_zshrc"
+  mv "$tmp_zshrc" "$HOME/.zshrc"
+fi
+
 if [[ -f "$SCRIPT_DIR/.p10k.zsh" ]]; then
   copy_file_if_exists "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 fi
@@ -279,8 +315,8 @@ cat <<'MSG'
 Installation complete.
 
 Recommended next steps:
-1) Log out and select BSPWM in your display manager (login screen).
-2) If your display manager is not listed, log out and choose BSPWM from the session selector.
+1) Reboot the system to ensure LightDM starts as the active display manager.
+2) Log in from LightDM; BSPWM should be selected by default.
 3) Verify key dependencies:
    bspwm --version && sxhkd -v && polybar --version && picom --version
 
