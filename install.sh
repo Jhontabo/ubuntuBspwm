@@ -136,8 +136,13 @@ copy_file_if_exists() {
   fi
 }
 
-log "Updating APT indices..."
+log "Requesting sudo credentials..."
+sudo -v
+
+log "Updating system packages..."
 sudo apt update
+sudo DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
+sudo DEBIAN_FRONTEND=noninteractive apt autoremove -y
 
 if [[ -r /etc/os-release ]]; then
   # shellcheck disable=SC1091
