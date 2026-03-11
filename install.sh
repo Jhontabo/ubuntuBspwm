@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [[ "${EUID}" -eq 0 ]]; then
-  echo "[!] No ejecutes este script como root. Usa tu usuario normal con sudo habilitado."
+  echo "[!] Do not run this script as root. Use your normal user with sudo enabled."
   exit 1
 fi
 
@@ -38,7 +38,7 @@ install_packages() {
   done
 
   if (( ${#missing[@]} > 0 )); then
-    die "Paquetes requeridos no disponibles en APT: ${missing[*]}"
+    die "Required packages not available in APT: ${missing[*]}"
   fi
 
   if (( ${#pkgs[@]} > 0 )); then
@@ -52,7 +52,7 @@ install_optional_packages() {
 
   for pkg in "$@"; do
     if ! package_available "$pkg"; then
-      warn "Paquete opcional no disponible, se omite: $pkg"
+      warn "Optional package not available, skipping: $pkg"
       continue
     fi
     if ! package_installed "$pkg"; then
@@ -78,7 +78,7 @@ copy_config_dir() {
   local dst="$2"
 
   if [[ ! -d "$src" ]]; then
-    warn "No existe directorio de origen: $src"
+    warn "Source directory does not exist: $src"
     return
   fi
 
@@ -96,25 +96,25 @@ copy_file_if_exists() {
     backup_path "$dst"
     cp -f "$src" "$dst"
   else
-    warn "No existe archivo: $src"
+    warn "File does not exist: $src"
   fi
 }
 
-log "Actualizando índices APT..."
+log "Updating APT indices..."
 sudo apt update
 
 if [[ -r /etc/os-release ]]; then
   # shellcheck disable=SC1091
   . /etc/os-release
   if [[ "${ID:-}" == "ubuntu" ]] && ! grep -RhsE '^[^#].*ubuntu.com/ubuntu.*[[:space:]]universe([[:space:]]|$)' /etc/apt/sources.list /etc/apt/sources.list.d/*.list >/dev/null 2>&1; then
-    log "Habilitando repositorio universe (Ubuntu)..."
+    log "Enabling universe repository (Ubuntu)..."
     install_packages software-properties-common
     sudo add-apt-repository -y universe
     sudo apt update
   fi
 fi
 
-log "Instalando paquetes base y entorno BSPWM..."
+log "Installing base packages and BSPWM environment..."
 install_packages \
   apt-transport-https ca-certificates curl wget git unzip build-essential \
   xorg xinit dbus-x11 policykit-1 \
@@ -131,7 +131,7 @@ install_optional_packages \
   libnotify-bin
 
 if ! package_installed lightdm && ! package_installed gdm3 && ! package_installed sddm; then
-  log "No se detectó display manager instalado, agregando LightDM..."
+  log "No display manager detected, installing LightDM..."
   install_packages lightdm lightdm-gtk-greeter
 fi
 
@@ -142,10 +142,10 @@ if systemctl list-unit-files 2>/dev/null | grep -q '^NetworkManager\\.service'; 
 fi
 
 if ! systemctl list-unit-files 2>/dev/null | grep -q '^display-manager\.service'; then
-  warn "No se detecta display manager activo. Si estás en Ubuntu Server limpio, habilita lightdm manualmente."
+  warn "No active display manager detected. Make sure to select BSPWM in your current display manager or login screen."
 fi
 
-log "Copiando configuraciones a ~/.config ..."
+log "Copying configurations to ~/.config ..."
 mkdir -p "$HOME/.config"
 copy_config_dir "$SCRIPT_DIR/Config/bspwm" "$HOME/.config/bspwm"
 copy_config_dir "$SCRIPT_DIR/Config/sxhkd" "$HOME/.config/sxhkd"
@@ -155,7 +155,7 @@ copy_config_dir "$SCRIPT_DIR/Config/bin" "$HOME/.config/bin"
 copy_config_dir "$SCRIPT_DIR/Config/kitty" "$HOME/.config/kitty"
 copy_config_dir "$SCRIPT_DIR/rofi" "$HOME/.config/rofi"
 
-log "Copiando wallpapers y utilidades..."
+log "Copying wallpapers and utilities..."
 mkdir -p "$HOME/Wallpaper" "$HOME/ScreenShots"
 if [[ -d "$SCRIPT_DIR/Wallpaper" ]]; then
   cp -af "$SCRIPT_DIR/Wallpaper/." "$HOME/Wallpaper/"
@@ -164,14 +164,14 @@ fi
 sudo install -m 0755 "$SCRIPT_DIR/scripts/whichSystem.py" /usr/local/bin/whichSystem.py
 sudo install -m 0755 "$SCRIPT_DIR/scripts/screenshot" /usr/local/bin/screenshot
 
-log "Instalando fuentes en el usuario..."
+log "Installing fonts for the user..."
 mkdir -p "$HOME/.local/share/fonts"
 if [[ -d "$SCRIPT_DIR/fonts/HNF" ]]; then
   cp -af "$SCRIPT_DIR/fonts/HNF/." "$HOME/.local/share/fonts/"
 fi
 fc-cache -fv >/dev/null || true
 
-log "Configurando ZSH y Powerlevel10k..."
+log "Configuring ZSH and Powerlevel10k..."
 if [[ ! -d "$HOME/.powerlevel10k" ]]; then
   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$HOME/.powerlevel10k"
 fi
@@ -198,10 +198,10 @@ APPEND
 fi
 
 if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]]; then
-  chsh -s "$(command -v zsh)" "$USER" || warn "No se pudo cambiar shell automáticamente. Ejecuta: chsh -s $(command -v zsh)"
+  chsh -s "$(command -v zsh)" "$USER" || warn "Could not change shell automatically. Run: chsh -s $(command -v zsh)"
 fi
 
-log "Asignando permisos de ejecución..."
+log "Setting executable permissions..."
 chmod +x "$HOME/.config/bspwm/bspwmrc" \
          "$HOME/.config/bspwm/scripts/bspwm_resize" \
          "$HOME/.config/bin/ethernet_status.sh" \
@@ -210,18 +210,17 @@ chmod +x "$HOME/.config/bspwm/bspwmrc" \
          "$HOME/.config/polybar/launch.sh"
 
 if command -v notify-send >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
-  notify-send "BSPWM" "Instalación completada" || true
+  notify-send "BSPWM" "Installation complete" || true
 fi
 
 cat <<'MSG'
 
-Instalación finalizada.
+Installation complete.
 
-Siguientes pasos recomendados:
-1) Reiniciar sesión y seleccionar BSPWM en el display manager.
-2) Si estás en Ubuntu Server sin entorno gráfico, habilita LightDM:
-   sudo systemctl enable --now lightdm
-3) Verifica dependencias clave:
+Recommended next steps:
+1) Log out and select BSPWM in your display manager (login screen).
+2) If your display manager is not listed, log out and choose BSPWM from the session selector.
+3) Verify key dependencies:
    bspwm --version && sxhkd -v && polybar --version && picom --version
 
 MSG
