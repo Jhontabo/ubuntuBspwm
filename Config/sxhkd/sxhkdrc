@@ -182,7 +182,7 @@ alt + ctrl + {Left,Down,Up,Right}
 
 # file explorer
 alt + e
-	thunar
+	~/.local/bin/file-manager-smart
 
 # browser
 alt + b
