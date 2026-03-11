@@ -105,6 +105,11 @@ configure_lightdm_bspwm() {
   log "Installing and configuring LightDM with BSPWM as default session..."
   install_packages lightdm lightdm-gtk-greeter
 
+  if command -v debconf-set-selections >/dev/null 2>&1; then
+    echo "lightdm shared/default-x-display-manager select /usr/sbin/lightdm" | sudo debconf-set-selections
+  fi
+  sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure lightdm >/dev/null 2>&1 || true
+
   sudo mkdir -p /etc/lightdm/lightdm.conf.d
   sudo tee /etc/lightdm/lightdm.conf.d/50-ubuntuBspwm.conf >/dev/null <<'EOF'
 [Seat:*]
@@ -129,6 +134,19 @@ EOF
   echo "/usr/sbin/lightdm" | sudo tee /etc/X11/default-display-manager >/dev/null
   sudo systemctl enable lightdm >/dev/null 2>&1 || true
   sudo systemctl set-default graphical.target >/dev/null 2>&1 || true
+}
+
+configure_x11_preferred() {
+  if [[ -f /etc/gdm3/custom.conf ]]; then
+    log "Configuring gdm3 fallback to X11 (Wayland disabled)..."
+    if grep -q '^[[:space:]]*#\?[[:space:]]*WaylandEnable=' /etc/gdm3/custom.conf; then
+      sudo sed -Ei 's|^[[:space:]]*#?[[:space:]]*WaylandEnable=.*|WaylandEnable=false|' /etc/gdm3/custom.conf
+    else
+      sudo tee -a /etc/gdm3/custom.conf >/dev/null <<'EOF'
+WaylandEnable=false
+EOF
+    fi
+  fi
 }
 
 backup_path() {
@@ -210,6 +228,7 @@ install_optional_packages \
   libnotify-bin
 
 configure_lightdm_bspwm
+configure_x11_preferred
 
 install_packages i3lock
 install_lsd
