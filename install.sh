@@ -169,6 +169,22 @@ ensure_rofi_theme_config() {
   fi
 }
 
+ensure_xsession_files() {
+  backup_path "$HOME/.xsession"
+  cat > "$HOME/.xsession" <<'EOF'
+#!/bin/sh
+exec bspwm
+EOF
+  chmod +x "$HOME/.xsession"
+
+  backup_path "$HOME/.xinitrc"
+  cat > "$HOME/.xinitrc" <<'EOF'
+#!/bin/sh
+exec bspwm
+EOF
+  chmod +x "$HOME/.xinitrc"
+}
+
 backup_path() {
   local target="$1"
   if [[ -e "$target" || -L "$target" ]]; then
@@ -283,6 +299,7 @@ copy_config_dir "$SCRIPT_DIR/Config/bin" "$HOME/.config/bin"
 copy_config_dir "$SCRIPT_DIR/Config/kitty" "$HOME/.config/kitty"
 copy_config_dir "$SCRIPT_DIR/rofi" "$HOME/.config/rofi"
 ensure_rofi_theme_config
+ensure_xsession_files
 
 log "Copying wallpapers and utilities..."
 mkdir -p "$HOME/Wallpaper" "$HOME/ScreenShots"
