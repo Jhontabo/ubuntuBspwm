@@ -65,6 +65,42 @@ install_optional_packages() {
   fi
 }
 
+backup_move_if_exists() {
+  local target="$1"
+  local backup="${target}.bak"
+
+  if [[ ! -e "$target" && ! -L "$target" ]]; then
+    return
+  fi
+
+  if [[ -e "$backup" || -L "$backup" ]]; then
+    backup="${target}.bak.$(date +%Y%m%d-%H%M%S)"
+  fi
+
+  mv "$target" "$backup"
+}
+
+install_lsd() {
+  if command -v lsd >/dev/null 2>&1; then
+    return
+  fi
+
+  if package_available lsd; then
+    install_packages lsd
+    return
+  fi
+
+  if [[ -f "$SCRIPT_DIR/lsd.deb" ]]; then
+    log "Installing lsd from bundled lsd.deb..."
+    sudo dpkg -i "$SCRIPT_DIR/lsd.deb" || sudo apt-get install -f -y
+    if command -v lsd >/dev/null 2>&1; then
+      return
+    fi
+  fi
+
+  warn "Could not install lsd (APT package unavailable and local .deb failed)."
+}
+
 backup_path() {
   local target="$1"
   if [[ -e "$target" || -L "$target" ]]; then
@@ -130,7 +166,7 @@ install_packages \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
   kitty thunar network-manager net-tools \
   alsa-utils pulseaudio-utils \
-  zsh zsh-syntax-highlighting zsh-autosuggestions \
+  zsh zsh-syntax-highlighting zsh-autosuggestions neovim \
   xdg-utils imagemagick plocate
 
 install_optional_packages \
@@ -145,6 +181,12 @@ if ! package_installed lightdm && ! package_installed gdm3 && ! package_installe
 fi
 
 install_packages i3lock
+install_lsd
+
+if ! command -v starship >/dev/null 2>&1; then
+  log "Installing starship..."
+  curl -sS https://starship.rs/install.sh | sh -s -- -y
+fi
 
 if systemctl list-unit-files 2>/dev/null | grep -q '^NetworkManager\\.service'; then
   sudo systemctl enable --now NetworkManager >/dev/null 2>&1 || true
@@ -156,6 +198,13 @@ fi
 
 log "Copying configurations to ~/.config ..."
 mkdir -p "$HOME/.config"
+
+log "Backing up existing Neovim directories (if present)..."
+backup_move_if_exists "$HOME/.config/nvim"
+backup_move_if_exists "$HOME/.local/share/nvim"
+backup_move_if_exists "$HOME/.local/state/nvim"
+backup_move_if_exists "$HOME/.cache/nvim"
+
 copy_config_dir "$SCRIPT_DIR/Config/bspwm" "$HOME/.config/bspwm"
 copy_config_dir "$SCRIPT_DIR/Config/sxhkd" "$HOME/.config/sxhkd"
 copy_config_dir "$SCRIPT_DIR/Config/picom" "$HOME/.config/picom"
