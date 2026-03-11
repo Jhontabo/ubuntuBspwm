@@ -291,6 +291,10 @@ backup_move_if_exists "$HOME/.local/share/nvim"
 backup_move_if_exists "$HOME/.local/state/nvim"
 backup_move_if_exists "$HOME/.cache/nvim"
 
+log "Installing LazyVim..."
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+rm -rf ~/.config/nvim/.git
+
 copy_config_dir "$SCRIPT_DIR/Config/bspwm" "$HOME/.config/bspwm"
 copy_config_dir "$SCRIPT_DIR/Config/sxhkd" "$HOME/.config/sxhkd"
 copy_config_dir "$SCRIPT_DIR/Config/picom" "$HOME/.config/picom"
