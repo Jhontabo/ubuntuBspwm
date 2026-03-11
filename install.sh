@@ -141,8 +141,7 @@ sudo -v
 
 log "Updating system packages..."
 sudo apt update
-sudo DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
-sudo DEBIAN_FRONTEND=noninteractive apt autoremove -y
+sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
 
 if [[ -r /etc/os-release ]]; then
   # shellcheck disable=SC1091
@@ -260,9 +259,8 @@ if ! grep -q 'powerlevel10k.zsh-theme' "$HOME/.zshrc" 2>/dev/null; then
 APPEND
 fi
 
-if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]]; then
-  chsh -s "$(command -v zsh)" "$USER" || warn "Could not change shell automatically. Run: chsh -s $(command -v zsh)"
-fi
+log "Keeping default login shell unchanged (recommended for BSPWM/display-manager stability)."
+log "Use zsh manually in terminal when needed."
 
 log "Setting executable permissions..."
 chmod +x "$HOME/.config/bspwm/bspwmrc" \
