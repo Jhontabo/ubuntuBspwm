@@ -115,9 +115,18 @@ if [[ -r /etc/os-release ]]; then
 fi
 
 log "Installing base packages and BSPWM environment..."
+polkit_pkg=""
+if package_available polkitd; then
+  polkit_pkg="polkitd"
+elif package_available policykit-1; then
+  polkit_pkg="policykit-1"
+else
+  die "Neither polkitd nor policykit-1 is available in APT repositories."
+fi
+
 install_packages \
   apt-transport-https ca-certificates curl wget git unzip build-essential \
-  xorg xinit dbus-x11 policykit-1 \
+  xorg xinit dbus-x11 "$polkit_pkg" \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
   kitty thunar network-manager net-tools \
   alsa-utils pulseaudio-utils \
