@@ -38,6 +38,21 @@ feh --bg-fill ~/Wallpaper/s4vitar.png
 # CUSTOM
 
 # PICOM
-picom &
+PICOM_CFG="$HOME/.config/picom/picom.conf"
+PICOM_VM_CFG="$HOME/.config/picom/picom-vm.conf"
+PICOM_LOG="$HOME/.cache/picom.log"
+
+mkdir -p "$HOME/.cache"
+
+if command -v systemd-detect-virt >/dev/null 2>&1 && systemd-detect-virt --quiet; then
+  if [ -f "$PICOM_VM_CFG" ]; then
+    PICOM_CFG="$PICOM_VM_CFG"
+  fi
+fi
+
+if ! pgrep -x picom >/dev/null 2>&1; then
+  picom --config "$PICOM_CFG" --daemon >>"$PICOM_LOG" 2>&1 || \
+    picom --backend xrender --config "$PICOM_CFG" --daemon >>"$PICOM_LOG" 2>&1 || true
+fi
 
 xsetroot -cursor_name left_ptr &

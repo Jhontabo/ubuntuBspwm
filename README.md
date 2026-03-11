@@ -15,6 +15,7 @@ This setup is based on [ZLCube/KaliBspwm](https://github.com/ZLCube/KaliBspwm), 
 
 - BSPWM + SXHKD tiling setup
 - Polybar and Picom preconfigured
+- Picom auto-selects a VM-safe profile (`xrender`, no blur) when virtualized
 - Kitty + Rofi themed configuration
 - Zsh with Powerlevel10k
 - Included custom scripts (`screenshot`, `whichSystem.py`, polybar helpers)
@@ -94,6 +95,8 @@ ubuntuBspwm/
    `sudo systemctl enable --now lightdm`
 3. Verify core tools:
    `bspwm --version && sxhkd -v && polybar --version && picom --version`
+4. If compositor issues appear, inspect:
+   `tail -n 80 ~/.cache/picom.log`
 
 ## Credits
 
