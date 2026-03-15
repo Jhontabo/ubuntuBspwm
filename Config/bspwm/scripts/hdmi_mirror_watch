@@ -1,0 +1,42 @@
+#!/bin/sh
+
+PATH=/usr/bin:/bin
+
+detect_internal() {
+  xrandr --query | awk '/^(eDP|LVDS|DSI)[^ ]* connected/ { print $1; exit }'
+}
+
+detect_hdmi() {
+  xrandr --query | awk '/^HDMI[^ ]* connected/ { print $1; exit }'
+}
+
+apply_layout() {
+  internal=$(detect_internal)
+  [ -n "$internal" ] || return 0
+
+  hdmi=$(detect_hdmi)
+
+  if [ -n "$hdmi" ]; then
+    xrandr \
+      --output "$internal" --primary --auto --rotate normal \
+      --output "$hdmi" --auto --same-as "$internal" --rotate normal
+
+    xrandr --output "$hdmi" --set underscan on \
+      --set "underscan hborder" 32 \
+      --set "underscan vborder" 18 \
+      --set "Broadcast RGB" "Full" >/dev/null 2>&1 || true
+  else
+    xrandr --output "$internal" --primary --auto --rotate normal
+  fi
+}
+
+apply_layout
+
+stdbuf -oL -eL xev -root -event randr 2>/dev/null | while IFS= read -r line; do
+  case "$line" in
+    *RRScreenChangeNotify*|*XRROutputChangeNotifyEvent*)
+      sleep 1
+      apply_layout
+      ;;
+  esac
+done

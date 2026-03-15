@@ -1,15 +1,23 @@
 #!/bin/bash
 
-INTERFACE=$(nmcli -t -f DEVICE,TYPE dev | grep ':wifi$' | cut -d: -f1 | head -1)
+set -euo pipefail
 
-if [ -z "$INTERFACE" ]; then
-    echo "offline"
-    exit 0
+interface=$(nmcli -t -f DEVICE,TYPE device status 2>/dev/null | awk -F: '$2 == "wifi" { print $1; exit }')
+
+if [ -z "$interface" ]; then
+  printf 'offline\n'
+  exit 0
 fi
 
-if nmcli -t -f DEVICE,STATE dev status | grep -q "$INTERFACE:connected"; then
-    SIGNAL=$(nmcli -t -f IN-USE,SIGNAL dev wifi list | grep '\*' | cut -d: -f2)
-    echo "${SIGNAL}%"
+if [ "$(nmcli radio wifi 2>/dev/null | tr '[:upper:]' '[:lower:]')" != "enabled" ]; then
+  printf 'off\n'
+  exit 0
+fi
+
+signal=$(nmcli -t -f ACTIVE,SIGNAL device wifi list ifname "$interface" 2>/dev/null | awk -F: '$1 == "yes" { print $2; exit }')
+
+if [ -n "$signal" ]; then
+  printf '%s%%\n' "$signal"
 else
-    echo "offline"
+  printf 'offline\n'
 fi

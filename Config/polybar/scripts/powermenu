@@ -1,37 +1,76 @@
 #!/bin/bash
 
+set -euo pipefail
 
-rofi_command="rofi -theme $HOME/.config/polybar/scripts/themes/powermenu.rasi"
+rofi_command=(rofi -theme "$HOME/.config/polybar/scripts/themes/powermenu.rasi")
+uptime=$(uptime -p 2>/dev/null | sed 's/^up //')
 
-uptime=$(uptime -p | sed -e 's/up //g')
-
-# Options
 shutdown=" Shutdown"
 reboot=" Restart"
 lock=" Lock"
 suspend=" Sleep"
 logout=" Logout"
 
-# Variable passed to rofi
-options="$lock\n$suspend\n$logout\n$reboot\n$shutdown"
+notify() {
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send "Power" "$1"
+  fi
+}
 
-chosen="$(echo -e "$options" | $rofi_command -p "UP - $uptime" -dmenu -selected-row 0)"
-case $chosen in
-    $shutdown)
-        systemctl poweroff
-        ;;
-    $reboot)
-        systemctl reboot
-        ;;
-    $lock)
-        i3lock
-        ;;
-    $suspend)
-        mpc -q pause
-        amixer set Master mute
-        systemctl suspend
-        ;;
-    $logout)
-        bspc quit
-        ;;
+pause_media() {
+  if command -v playerctl >/dev/null 2>&1; then
+    playerctl pause >/dev/null 2>&1 || true
+  elif command -v mpc >/dev/null 2>&1; then
+    mpc -q pause >/dev/null 2>&1 || true
+  fi
+}
+
+mute_audio() {
+  if command -v amixer >/dev/null 2>&1; then
+    amixer set "${POLYBAR_MIXER:-Master}" mute >/dev/null 2>&1 || amixer set Master mute >/dev/null 2>&1 || true
+  fi
+}
+
+lock_screen() {
+  if command -v i3lock >/dev/null 2>&1; then
+    i3lock
+    return 0
+  fi
+
+  if command -v loginctl >/dev/null 2>&1; then
+    loginctl lock-session
+    return 0
+  fi
+
+  if command -v dm-tool >/dev/null 2>&1; then
+    dm-tool lock
+    return 0
+  fi
+
+  notify "No lock command is available"
+  return 1
+}
+
+chosen="$(printf '%s\n' "$lock" "$suspend" "$logout" "$reboot" "$shutdown" | "${rofi_command[@]}" -p "UP - $uptime" -dmenu -selected-row 0)"
+
+[ -n "$chosen" ] || exit 0
+
+case "$chosen" in
+  "$shutdown")
+    systemctl poweroff
+    ;;
+  "$reboot")
+    systemctl reboot
+    ;;
+  "$lock")
+    lock_screen
+    ;;
+  "$suspend")
+    pause_media
+    mute_audio
+    systemctl suspend
+    ;;
+  "$logout")
+    bspc quit
+    ;;
 esac

@@ -1,13 +1,164 @@
 #!/bin/bash
 
-export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+set -euo pipefail
 
-NETWORKS=$(timeout 3 nmcli -t -f SSID dev wifi list 2>/dev/null | head -15)
+notify() {
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send "Wi-Fi" "$1"
+  fi
+}
 
-[ -z "$NETWORKS" ] && NETWORKS="No networks"
+get_interface() {
+  nmcli -t -f DEVICE,TYPE device status 2>/dev/null | awk -F: '$2 == "wifi" { print $1; exit }'
+}
 
-CHOICE=$(echo "$NETWORKS" | /usr/bin/rofi -dmenu -p "WiFi" -i 2>/dev/null)
+prompt_menu() {
+  rofi -dmenu -i -p "Wi-Fi"
+}
 
-[ -z "$CHOICE" ] && exit 0
+prompt_password() {
+  rofi -dmenu -password -p "Password"
+}
 
-/usr/bin/nmcli dev wifi connect "$CHOICE" 2>/dev/null &
+add_network() {
+  [ -n "$current_ssid" ] || return 0
+
+  security_label=$current_security
+  if [ -z "$security_label" ] || [ "$security_label" = "--" ]; then
+    security_label="open"
+  fi
+
+  index=$(printf '%02d' "${#menu_entries[@]}")
+  marker=" "
+  if [ "$current_in_use" = "*" ]; then
+    marker="*"
+  fi
+
+  menu_entries+=("[$index] $marker $current_ssid  ${current_signal:-0}%  $security_label")
+  network_ssids+=("$current_ssid")
+  network_targets+=("${current_bssid:-$current_ssid}")
+  network_security+=("$security_label")
+  network_connected+=("$current_in_use")
+}
+
+connect_network() {
+  local index="$1"
+  local position=$((10#$index))
+  local ssid="${network_ssids[$position]}"
+  local target="${network_targets[$position]}"
+  local security="${network_security[$position]}"
+  local connected="${network_connected[$position]}"
+
+  if [ "$connected" = "*" ]; then
+    notify "Already connected to $ssid"
+    return 0
+  fi
+
+  if nmcli --wait 15 device wifi connect "$target" ifname "$interface" >/dev/null 2>&1; then
+    notify "Connected to $ssid"
+    return 0
+  fi
+
+  if [ "$security" = "open" ]; then
+    notify "Failed to connect to $ssid"
+    return 1
+  fi
+
+  password=$(printf '' | prompt_password)
+  [ -n "$password" ] || return 0
+
+  if nmcli --wait 15 device wifi connect "$target" ifname "$interface" password "$password" >/dev/null 2>&1; then
+    notify "Connected to $ssid"
+    return 0
+  fi
+
+  notify "Failed to connect to $ssid"
+  return 1
+}
+
+interface=$(get_interface)
+
+if [ -z "$interface" ]; then
+  notify "No Wi-Fi interface detected"
+  exit 1
+fi
+
+if [ "$(nmcli radio wifi 2>/dev/null | tr '[:upper:]' '[:lower:]')" != "enabled" ]; then
+  choice=$(printf '%s\n' "[on] Turn Wi-Fi on" "[cancel] Cancel" | prompt_menu)
+  case "$choice" in
+    "[on] Turn Wi-Fi on")
+      nmcli radio wifi on >/dev/null 2>&1
+      notify "Wi-Fi enabled"
+      exec "$0"
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+fi
+
+nmcli device wifi rescan ifname "$interface" >/dev/null 2>&1 || true
+sleep 1
+
+declare -a menu_entries network_ssids network_targets network_security network_connected
+current_in_use=""
+current_ssid=""
+current_signal=""
+current_security=""
+current_bssid=""
+
+while IFS= read -r line || [ -n "$line" ]; do
+  if [ -z "$line" ]; then
+    add_network
+    current_in_use=""
+    current_ssid=""
+    current_signal=""
+    current_security=""
+    current_bssid=""
+    continue
+  fi
+
+  key=${line%%:*}
+  value=${line#*:}
+  value=${value# }
+
+  case "$key" in
+    IN-USE)
+      current_in_use="$value"
+      ;;
+    SSID)
+      current_ssid="$value"
+      ;;
+    SIGNAL)
+      current_signal="$value"
+      ;;
+    SECURITY)
+      current_security="$value"
+      ;;
+    BSSID)
+      current_bssid="$value"
+      ;;
+  esac
+done < <(nmcli --colors no --mode multiline --fields IN-USE,SSID,SIGNAL,SECURITY,BSSID device wifi list ifname "$interface" 2>/dev/null)
+
+add_network
+
+menu_entries+=("[refresh] Rescan networks" "[off] Turn Wi-Fi off")
+choice=$(printf '%s\n' "${menu_entries[@]}" | prompt_menu)
+
+[ -n "$choice" ] || exit 0
+
+case "$choice" in
+  "[refresh] Rescan networks")
+    exec "$0"
+    ;;
+  "[off] Turn Wi-Fi off")
+    nmcli radio wifi off >/dev/null 2>&1
+    notify "Wi-Fi disabled"
+    ;;
+  \[[0-9][0-9]\]*)
+    index=${choice#\[}
+    index=${index%%]*}
+    connect_network "$index"
+    ;;
+esac
