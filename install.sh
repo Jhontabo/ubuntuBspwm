@@ -90,15 +90,7 @@ install_lsd() {
     return
   fi
 
-  if [[ -f "$SCRIPT_DIR/lsd.deb" ]]; then
-    log "Installing lsd from bundled lsd.deb..."
-    sudo dpkg -i "$SCRIPT_DIR/lsd.deb" || sudo apt-get install -f -y
-    if command -v lsd >/dev/null 2>&1; then
-      return
-    fi
-  fi
-
-  warn "Could not install lsd (APT package unavailable and local .deb failed)."
+  warn "Could not install lsd because the APT package is unavailable."
 }
 
 configure_lightdm_bspwm() {
