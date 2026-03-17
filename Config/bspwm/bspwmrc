@@ -32,7 +32,11 @@ pgrep -af "hdmi_mirror_watch" >/dev/null 2>&1 || \
   nohup "$HOME/.config/bspwm/scripts/hdmi_mirror_watch" >/dev/null 2>&1 &
 
 # WALLPAPER
-feh --bg-fill ~/Wallpaper/s4vitar.png
+if [ -f "$HOME/.fehbg" ]; then
+  "$HOME/.fehbg" &
+else
+  nitrogen --restore &
+fi
 
 # POLYBAR
 ~/.config/polybar/launch.sh
