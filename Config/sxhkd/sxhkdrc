@@ -26,9 +26,9 @@ alt + shift + e
 alt + shift + r
 	pkill -USR1 -x sxhkd
 
-# redraw all windows
-alt + shift + w
-	bspc wm -r
+# choose wallpaper
+super + w
+	kitty --title "Wallpaper Picker" sh -lc '~/.local/bin/wall'
 
 # pause mode (disable keybindings)
 alt + shift + p
