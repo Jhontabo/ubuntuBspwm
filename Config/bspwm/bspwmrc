@@ -34,8 +34,10 @@ pgrep -af "hdmi_mirror_watch" >/dev/null 2>&1 || \
 # WALLPAPER
 if [ -f "$HOME/.fehbg" ]; then
   "$HOME/.fehbg" &
-else
+elif command -v nitrogen >/dev/null 2>&1; then
   nitrogen --restore &
+elif first_wallpaper=$(find "$HOME/Wallpaper" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | sort | head -n 1); then
+  [ -n "$first_wallpaper" ] && feh --bg-fill "$first_wallpaper" &
 fi
 
 # POLYBAR

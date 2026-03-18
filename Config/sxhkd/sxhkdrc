@@ -197,39 +197,39 @@ alt + shift + ctrl + b
 ###############
 
 @Print
-        flameshot gui
+	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot gui; else screenshot select; fi'
 
 @Print + ctrl
-        flameshot full -c
+	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot full -c; else screenshot; fi'
 
 @Print + alt
-        flameshot screen -c
+	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot screen -c; else screenshot window; fi'
 
 ###############
 # Volume (F1-F3) #
 ###############
 
 F1
-        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; else amixer set "${POLYBAR_MIXER:-Master}" toggle >/dev/null 2>&1 || amixer set Master toggle >/dev/null 2>&1; fi'
 
 F2
-        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; else amixer set "${POLYBAR_MIXER:-Master}" 5%- unmute >/dev/null 2>&1 || amixer set Master 5%- unmute >/dev/null 2>&1; fi'
 
 F3
-        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+; else amixer set "${POLYBAR_MIXER:-Master}" 5%+ unmute >/dev/null 2>&1 || amixer set Master 5%+ unmute >/dev/null 2>&1; fi'
 
 ###############
 # Spotify #
 ###############
 
 XF86AudioNext
-	playerctl -p spotify next
+	sh -c 'command -v playerctl >/dev/null 2>&1 && playerctl -p spotify next || true'
 
 XF86AudioPrev
-	playerctl -p spotify previous
+	sh -c 'command -v playerctl >/dev/null 2>&1 && playerctl -p spotify previous || true'
 
 XF86AudioPlay
-	playerctl -p spotify play-pause
+	sh -c 'command -v playerctl >/dev/null 2>&1 && playerctl -p spotify play-pause || true'
 
 XF86AudioStop
-	playerctl -p spotify pause
+	sh -c 'command -v playerctl >/dev/null 2>&1 && playerctl -p spotify pause || true'

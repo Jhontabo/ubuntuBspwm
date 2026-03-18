@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+wallpaper_dir="${1:-$HOME/Wallpaper}"
+
+if [[ ! -d "$wallpaper_dir" ]]; then
+  printf '[!] Wallpaper directory not found: %s\n' "$wallpaper_dir" >&2
+  exit 1
+fi
+
+mapfile -t images < <(find "$wallpaper_dir" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | sort)
+
+if (( ${#images[@]} == 0 )); then
+  printf '[!] No wallpapers found in %s\n' "$wallpaper_dir" >&2
+  exit 1
+fi
+
+declare -A choices=()
+labels=()
+
+for image in "${images[@]}"; do
+  label="${image#$wallpaper_dir/}"
+  labels+=("$label")
+  choices["$label"]="$image"
+done
+
+selection=""
+
+if command -v rofi >/dev/null 2>&1; then
+  selection="$(printf '%s\n' "${labels[@]}" | rofi -dmenu -i -p 'Wallpaper')"
+else
+  PS3='Wallpaper> '
+  select candidate in "${labels[@]}"; do
+    selection="$candidate"
+    break
+  done
+fi
+
+[[ -n "$selection" ]] || exit 0
+
+selected_wallpaper="${choices[$selection]:-}"
+
+if [[ -z "$selected_wallpaper" || ! -f "$selected_wallpaper" ]]; then
+  printf '[!] Invalid wallpaper selection\n' >&2
+  exit 1
+fi
+
+feh --bg-fill "$selected_wallpaper"
+
+if command -v notify-send >/dev/null 2>&1; then
+  notify-send 'Wallpaper' "Applied: $selection"
+fi

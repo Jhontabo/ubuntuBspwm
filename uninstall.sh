@@ -34,6 +34,7 @@ restore_from_backup_if_exists() {
 }
 
 log "Removing ubuntuBspwm user files..."
+remove_path "$HOME/.config/nvim"
 remove_path "$HOME/.config/bspwm"
 remove_path "$HOME/.config/sxhkd"
 remove_path "$HOME/.config/picom"
@@ -41,9 +42,17 @@ remove_path "$HOME/.config/polybar"
 remove_path "$HOME/.config/bin"
 remove_path "$HOME/.config/kitty"
 remove_path "$HOME/.config/rofi"
+remove_path "$HOME/.config/starship.toml"
+remove_path "$HOME/.local/bin/wall"
+remove_path "$HOME/.local/bin/file-manager-smart"
+remove_path "$HOME/.local/share/nvim"
+remove_path "$HOME/.local/state/nvim"
+remove_path "$HOME/.cache/nvim"
+remove_path "$HOME/.dmrc"
+remove_path "$HOME/.xsession"
+remove_path "$HOME/.xinitrc"
 remove_path "$HOME/Wallpaper"
 remove_path "$HOME/ScreenShots"
-remove_path "$HOME/.p10k.zsh"
 remove_path "$HOME/.zshrc"
 
 log "Removing installed fonts from ~/.local/share/fonts..."
@@ -70,8 +79,17 @@ if [[ -n "$LATEST_BACKUP" ]]; then
   restore_from_backup_if_exists "bin" "$HOME/.config/bin"
   restore_from_backup_if_exists "kitty" "$HOME/.config/kitty"
   restore_from_backup_if_exists "rofi" "$HOME/.config/rofi"
+  restore_from_backup_if_exists "nvim-config" "$HOME/.config/nvim"
+  restore_from_backup_if_exists "nvim-data" "$HOME/.local/share/nvim"
+  restore_from_backup_if_exists "nvim-state" "$HOME/.local/state/nvim"
+  restore_from_backup_if_exists "nvim-cache" "$HOME/.cache/nvim"
+  restore_from_backup_if_exists "starship.toml" "$HOME/.config/starship.toml"
+  restore_from_backup_if_exists "local-bin-wall" "$HOME/.local/bin/wall"
+  restore_from_backup_if_exists "local-bin-file-manager-smart" "$HOME/.local/bin/file-manager-smart"
+  restore_from_backup_if_exists ".dmrc" "$HOME/.dmrc"
+  restore_from_backup_if_exists ".xsession" "$HOME/.xsession"
+  restore_from_backup_if_exists ".xinitrc" "$HOME/.xinitrc"
   restore_from_backup_if_exists ".zshrc" "$HOME/.zshrc"
-  restore_from_backup_if_exists ".p10k.zsh" "$HOME/.p10k.zsh"
 else
   warn "No backup found (.config-backup-ubuntuBspwm-*). Nothing to restore."
 fi
@@ -83,6 +101,5 @@ Uninstall finished.
 Notes:
 - Installed APT packages are NOT removed automatically.
 - Zsh shell default is NOT reverted automatically.
-- If needed, remove ~/.powerlevel10k manually.
 
 MSG
