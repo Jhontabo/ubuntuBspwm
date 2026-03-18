@@ -55,8 +55,7 @@ zstyle ':completion:*' verbose true
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-# [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh  # Using starship instead
+# Prompt is provided by Starship when installed.
 
 # PATH normalization and dedupe
 typeset -U path PATH
@@ -75,9 +74,15 @@ alias la='lsd -a --group-dirs=first --icon=always --icon-theme=unicode'
 alias l='lsd --group-dirs=first --icon=always --icon-theme=unicode'
 alias lla='lsd -lha --group-dirs=first --icon=always --icon-theme=unicode'
 alias ls='lsd --group-dirs=first --icon=always --icon-theme=unicode'
-alias cat='/bin/batcat --paging=never'
-alias catn='cat'
-alias catnl='batcat'
+if command -v batcat >/dev/null 2>&1; then
+	alias bat='batcat'
+	alias cat='batcat --paging=never'
+	alias catnl='batcat'
+elif command -v bat >/dev/null 2>&1; then
+	alias cat='bat --paging=never'
+	alias catnl='bat'
+fi
+alias catn='command cat'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -157,15 +162,14 @@ function rmk(){
 	shred -zun 10 -v $1
 }
 
-# Finalize Powerlevel10k instant prompt - Using Starship instead
-# (( ! ${+functions[p10k-instant-prompt-finalize]} )) || p10k-instant-prompt-finalize 
+# Final prompt uses Starship.
 
 bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
 bindkey "^[[3~" delete-char
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
-# source ~/.powerlevel10k/powerlevel10k.zsh-theme  # Using starship instead
+# Starship replaces the old Powerlevel10k theme.
 
 #alias
 

@@ -65,19 +65,17 @@ install_optional_packages() {
   fi
 }
 
-backup_move_if_exists() {
-  local target="$1"
-  local backup="${target}.bak"
+backup_named_path() {
+  local backup_name="$1"
+  local target="$2"
 
   if [[ ! -e "$target" && ! -L "$target" ]]; then
     return
   fi
 
-  if [[ -e "$backup" || -L "$backup" ]]; then
-    backup="${target}.bak.$(date +%Y%m%d-%H%M%S)"
-  fi
-
-  mv "$target" "$backup"
+  mkdir -p "$BACKUP_DIR"
+  rm -rf "$BACKUP_DIR/$backup_name"
+  cp -a "$target" "$BACKUP_DIR/$backup_name"
 }
 
 install_lsd() {
@@ -93,52 +91,13 @@ install_lsd() {
   warn "Could not install lsd because the APT package is unavailable."
 }
 
-configure_lightdm_bspwm() {
-  log "Installing and configuring LightDM with BSPWM as default session..."
-  install_packages lightdm lightdm-gtk-greeter
-
-  if command -v debconf-set-selections >/dev/null 2>&1; then
-    echo "lightdm shared/default-x-display-manager select /usr/sbin/lightdm" | sudo debconf-set-selections
-  fi
-  sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure lightdm >/dev/null 2>&1 || true
-
-  sudo mkdir -p /etc/lightdm/lightdm.conf.d
-  sudo tee /etc/lightdm/lightdm.conf.d/50-ubuntuBspwm.conf >/dev/null <<'EOF'
-[Seat:*]
-greeter-session=lightdm-gtk-greeter
-user-session=bspwm
-session-wrapper=/etc/X11/Xsession
-EOF
-
+ensure_dmrc() {
+  backup_path "$HOME/.dmrc"
   cat > "$HOME/.dmrc" <<'EOF'
 [Desktop]
 Session=bspwm
 EOF
   chmod 0644 "$HOME/.dmrc"
-
-  if systemctl list-unit-files 2>/dev/null | grep -q '^gdm3\.service'; then
-    sudo systemctl disable gdm3 >/dev/null 2>&1 || true
-  fi
-  if systemctl list-unit-files 2>/dev/null | grep -q '^sddm\.service'; then
-    sudo systemctl disable sddm >/dev/null 2>&1 || true
-  fi
-
-  echo "/usr/sbin/lightdm" | sudo tee /etc/X11/default-display-manager >/dev/null
-  sudo systemctl enable lightdm >/dev/null 2>&1 || true
-  sudo systemctl set-default graphical.target >/dev/null 2>&1 || true
-}
-
-configure_x11_preferred() {
-  if [[ -f /etc/gdm3/custom.conf ]]; then
-    log "Configuring gdm3 fallback to X11 (Wayland disabled)..."
-    if grep -q '^[[:space:]]*#\?[[:space:]]*WaylandEnable=' /etc/gdm3/custom.conf; then
-      sudo sed -Ei 's|^[[:space:]]*#?[[:space:]]*WaylandEnable=.*|WaylandEnable=false|' /etc/gdm3/custom.conf
-    else
-      sudo tee -a /etc/gdm3/custom.conf >/dev/null <<'EOF'
-WaylandEnable=false
-EOF
-    fi
-  fi
 }
 
 ensure_rofi_theme_config() {
@@ -212,6 +171,21 @@ copy_file_if_exists() {
   fi
 }
 
+install_local_script() {
+  local src="$1"
+  local name="${2:-$(basename "$src")}"
+  local dst="$HOME/.local/bin/$name"
+
+  if [[ ! -f "$src" ]]; then
+    warn "File does not exist: $src"
+    return
+  fi
+
+  backup_named_path "local-bin-$name" "$dst"
+  mkdir -p "$HOME/.local/bin"
+  install -m 0755 "$src" "$dst"
+}
+
 log "Requesting sudo credentials..."
 sudo -v
 
@@ -241,7 +215,7 @@ else
 fi
 
 install_packages \
-  apt-transport-https ca-certificates curl wget git unzip build-essential \
+  ca-certificates curl wget git unzip build-essential \
   xorg xinit dbus-x11 "$polkit_pkg" \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
   kitty thunar network-manager net-tools \
@@ -250,13 +224,11 @@ install_packages \
   xdg-utils imagemagick plocate
 
 install_optional_packages \
-  flameshot pipewire wireplumber cmatrix ranger neofetch scrub \
+  flameshot pipewire wireplumber playerctl bat fzf yazi zsh-autocomplete zsh-sudo \
+  cmatrix ranger neofetch scrub \
   papirus-icon-theme \
   fonts-font-awesome \
   libnotify-bin
-
-configure_lightdm_bspwm
-configure_x11_preferred
 
 install_packages i3lock
 install_lsd
@@ -271,17 +243,18 @@ if systemctl list-unit-files 2>/dev/null | grep -q '^NetworkManager\\.service'; 
 fi
 
 if ! systemctl list-unit-files 2>/dev/null | grep -q '^display-manager\.service'; then
-  warn "No active display manager detected. Make sure to select BSPWM in your current display manager or login screen."
+  warn "No display manager detected. Install one manually or start BSPWM with startx."
 fi
 
 log "Copying configurations to ~/.config ..."
 mkdir -p "$HOME/.config"
 
 log "Backing up existing Neovim directories (if present)..."
-backup_move_if_exists "$HOME/.config/nvim"
-backup_move_if_exists "$HOME/.local/share/nvim"
-backup_move_if_exists "$HOME/.local/state/nvim"
-backup_move_if_exists "$HOME/.cache/nvim"
+backup_named_path "nvim-config" "$HOME/.config/nvim"
+backup_named_path "nvim-data" "$HOME/.local/share/nvim"
+backup_named_path "nvim-state" "$HOME/.local/state/nvim"
+backup_named_path "nvim-cache" "$HOME/.cache/nvim"
+rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
 
 log "Installing LazyVim..."
 git clone https://github.com/LazyVim/starter ~/.config/nvim
@@ -294,7 +267,9 @@ copy_config_dir "$SCRIPT_DIR/Config/polybar" "$HOME/.config/polybar"
 copy_config_dir "$SCRIPT_DIR/Config/bin" "$HOME/.config/bin"
 copy_config_dir "$SCRIPT_DIR/Config/kitty" "$HOME/.config/kitty"
 copy_config_dir "$SCRIPT_DIR/rofi" "$HOME/.config/rofi"
+copy_file_if_exists "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
 ensure_rofi_theme_config
+ensure_dmrc
 ensure_xsession_files
 
 log "Copying wallpapers and utilities..."
@@ -302,6 +277,9 @@ mkdir -p "$HOME/Wallpaper" "$HOME/ScreenShots"
 if [[ -d "$SCRIPT_DIR/Wallpaper" ]]; then
   cp -af "$SCRIPT_DIR/Wallpaper/." "$HOME/Wallpaper/"
 fi
+
+install_local_script "$SCRIPT_DIR/scripts/wall"
+install_local_script "$SCRIPT_DIR/scripts/file-manager-smart"
 
 sudo install -m 0755 "$SCRIPT_DIR/scripts/whichSystem.py" /usr/local/bin/whichSystem.py
 sudo install -m 0755 "$SCRIPT_DIR/scripts/screenshot" /usr/local/bin/screenshot
@@ -313,10 +291,7 @@ if [[ -d "$SCRIPT_DIR/fonts/HNF" ]]; then
 fi
 fc-cache -fv >/dev/null || true
 
-log "Configuring ZSH and Powerlevel10k..."
-if [[ ! -d "$HOME/.powerlevel10k" ]]; then
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$HOME/.powerlevel10k"
-fi
+log "Configuring ZSH and Starship..."
 
 if [[ -f "$SCRIPT_DIR/.zshrc" ]]; then
   copy_file_if_exists "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
@@ -325,7 +300,7 @@ else
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-[[ -r ~/.powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/.powerlevel10k/powerlevel10k.zsh-theme
+eval "$(starship init zsh)"
 ZSHRC
 fi
 
@@ -336,16 +311,6 @@ if ! grep -q '^\[\[ \$- != \*i\* \]\] && return$' "$HOME/.zshrc" 2>/dev/null; th
     cat "$HOME/.zshrc"
   } > "$tmp_zshrc"
   mv "$tmp_zshrc" "$HOME/.zshrc"
-fi
-
-if [[ -f "$SCRIPT_DIR/.p10k.zsh" ]]; then
-  copy_file_if_exists "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
-fi
-
-if ! grep -q 'powerlevel10k.zsh-theme' "$HOME/.zshrc" 2>/dev/null; then
-  cat >> "$HOME/.zshrc" <<'APPEND'
-[[ -r ~/.powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/.powerlevel10k/powerlevel10k.zsh-theme
-APPEND
 fi
 
 log "Keeping default login shell unchanged (recommended for BSPWM/display-manager stability)."
@@ -368,9 +333,8 @@ cat <<'MSG'
 Installation complete.
 
 Recommended next steps:
-1) Reboot the system to ensure LightDM starts as the active display manager.
-2) Log in from LightDM; BSPWM should be selected by default.
-3) Verify key dependencies:
+1) Log out and select BSPWM in your current display manager, or run `startx` if you do not use one.
+2) Verify key dependencies:
    bspwm --version && sxhkd -v && polybar --version && picom --version
 
 MSG

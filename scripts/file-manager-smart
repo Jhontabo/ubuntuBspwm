@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+start_dir="${1:-$HOME}"
+
+if command -v yazi >/dev/null 2>&1 && command -v kitty >/dev/null 2>&1; then
+  exec kitty --title 'Yazi' yazi "$start_dir"
+fi
+
+if command -v thunar >/dev/null 2>&1; then
+  thunar "$start_dir" >/dev/null 2>&1 &
+  exit 0
+fi
+
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$start_dir" >/dev/null 2>&1 &
+  exit 0
+fi
+
+printf '[!] No file manager is available\n' >&2
+exit 1
