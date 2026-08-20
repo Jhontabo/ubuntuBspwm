@@ -65,6 +65,21 @@ install_optional_packages() {
   fi
 }
 
+# Detect whether the universe repository is already enabled, supporting both
+# classic sources.list lines and deb822 (.sources) files used by Pop!_OS.
+universe_enabled() {
+  local f
+  for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
+    [[ -r "$f" ]] || continue
+    grep -Eq '^[^#].*[[:space:]]universe([[:space:]]|$)' "$f" && return 0
+  done
+  for f in /etc/apt/sources.list.d/*.sources; do
+    [[ -r "$f" ]] || continue
+    grep -Eiq '^\s*Components:\s*(.*\s)?universe(\s|$)' "$f" && return 0
+  done
+  return 1
+}
+
 backup_named_path() {
   local backup_name="$1"
   local target="$2"
@@ -93,6 +108,7 @@ install_lsd() {
 
 ensure_dmrc() {
   backup_path "$HOME/.dmrc"
+  warn "Setting BSPWM as the default session in ~/.dmrc (previous file backed up)."
   cat > "$HOME/.dmrc" <<'EOF'
 [Desktop]
 Session=bspwm
@@ -122,6 +138,7 @@ ensure_rofi_theme_config() {
 
 ensure_xsession_files() {
   backup_path "$HOME/.xsession"
+  warn "Previous ~/.xsession will be replaced (backed up). It now starts BSPWM."
   cat > "$HOME/.xsession" <<'EOF'
 #!/bin/sh
 exec bspwm
@@ -129,6 +146,7 @@ EOF
   chmod +x "$HOME/.xsession"
 
   backup_path "$HOME/.xinitrc"
+  warn "Previous ~/.xinitrc will be replaced (backed up). It now starts BSPWM."
   cat > "$HOME/.xinitrc" <<'EOF'
 #!/bin/sh
 exec bspwm
@@ -189,19 +207,22 @@ install_local_script() {
 log "Requesting sudo credentials..."
 sudo -v
 
-log "Updating system packages..."
+log "Updating package lists..."
 sudo apt update
-sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
 
 if [[ -r /etc/os-release ]]; then
   # shellcheck disable=SC1091
   . /etc/os-release
-  if [[ "${ID:-}" == "ubuntu" ]] && ! grep -RhsE '^[^#].*ubuntu.com/ubuntu.*[[:space:]]universe([[:space:]]|$)' /etc/apt/sources.list /etc/apt/sources.list.d/*.list >/dev/null 2>&1; then
-    log "Enabling universe repository (Ubuntu)..."
-    install_packages software-properties-common
-    sudo add-apt-repository -y universe
-    sudo apt update
-  fi
+  case "${ID:-}" in
+    ubuntu|pop)
+      if ! universe_enabled; then
+        log "Enabling universe repository..."
+        install_packages software-properties-common
+        sudo add-apt-repository -y universe
+        sudo apt update
+      fi
+      ;;
+  esac
 fi
 
 log "Installing base packages and BSPWM environment..."
@@ -216,7 +237,7 @@ fi
 
 install_packages \
   ca-certificates curl wget git unzip build-essential \
-  xorg xinit dbus-x11 "$polkit_pkg" \
+  xorg xinit x11-utils x11-xserver-utils dbus-x11 "$polkit_pkg" \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
   kitty thunar network-manager net-tools \
   alsa-utils pulseaudio-utils \
@@ -225,7 +246,7 @@ install_packages \
 
 install_optional_packages \
   flameshot pipewire wireplumber playerctl bat fzf yazi zsh-autocomplete zsh-sudo \
-  cmatrix ranger neofetch scrub \
+  cmatrix ranger neofetch \
   papirus-icon-theme \
   fonts-font-awesome \
   libnotify-bin
@@ -254,11 +275,18 @@ backup_named_path "nvim-config" "$HOME/.config/nvim"
 backup_named_path "nvim-data" "$HOME/.local/share/nvim"
 backup_named_path "nvim-state" "$HOME/.local/state/nvim"
 backup_named_path "nvim-cache" "$HOME/.cache/nvim"
-rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
 
 log "Installing LazyVim..."
-git clone https://github.com/LazyVim/starter ~/.config/nvim
-rm -rf ~/.config/nvim/.git
+CLONE_DIR="$(mktemp -d)"
+if git clone https://github.com/LazyVim/starter "$CLONE_DIR" >/dev/null 2>&1; then
+  rm -rf "$HOME/.config/nvim" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
+  mkdir -p "$HOME/.config"
+  cp -a "$CLONE_DIR/." "$HOME/.config/nvim"
+  rm -rf "$HOME/.config/nvim/.git"
+else
+  warn "Could not clone LazyVim 'starter'. Existing Neovim configuration was left untouched."
+fi
+rm -rf "$CLONE_DIR"
 
 copy_config_dir "$SCRIPT_DIR/Config/bspwm" "$HOME/.config/bspwm"
 copy_config_dir "$SCRIPT_DIR/Config/sxhkd" "$HOME/.config/sxhkd"
@@ -295,13 +323,6 @@ log "Configuring ZSH and Starship..."
 
 if [[ -f "$SCRIPT_DIR/.zshrc" ]]; then
   copy_file_if_exists "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
-else
-  cat > "$HOME/.zshrc" <<'ZSHRC'
-export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
-source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-eval "$(starship init zsh)"
-ZSHRC
 fi
 
 if ! grep -q '^\[\[ \$- != \*i\* \]\] && return$' "$HOME/.zshrc" 2>/dev/null; then
@@ -331,6 +352,12 @@ fi
 cat <<'MSG'
 
 Installation complete.
+
+Notes:
+- This script does NOT run `apt upgrade`. Run it yourself when convenient.
+- Your previous config files were copied to:
+  $BACKUP_DIR
+- Use `~/.config-backup-ubuntuBspwm-*` and uninstall.sh to restore.
 
 Recommended next steps:
 1) Log out and select BSPWM in your current display manager, or run `startx` if you do not use one.
