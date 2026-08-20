@@ -106,6 +106,33 @@ install_lsd() {
   warn "Could not install lsd because the APT package is unavailable."
 }
 
+install_homebrew_nvim() {
+  if command -v nvim >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! command -v brew >/dev/null 2>&1; then
+    log "Homebrew not found, installing it..."
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
+
+  local brew_bin
+  if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    brew_bin="/home/linuxbrew/.linuxbrew/bin/brew"
+  elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
+    brew_bin="$HOME/.linuxbrew/bin/brew"
+  elif command -v brew >/dev/null 2>&1; then
+    brew_bin="$(command -v brew)"
+  else
+    warn "Homebrew installation finished but the brew binary was not found."
+    return
+  fi
+
+  log "Installing neovim via Homebrew..."
+  eval "$("$brew_bin" shellenv)"
+  brew install neovim
+}
+
 ensure_dmrc() {
   backup_path "$HOME/.dmrc"
   warn "Setting BSPWM as the default session in ~/.dmrc (previous file backed up)."
@@ -241,7 +268,7 @@ install_packages \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
   kitty thunar network-manager net-tools \
   alsa-utils pulseaudio-utils \
-  zsh zsh-syntax-highlighting zsh-autosuggestions neovim \
+  zsh zsh-syntax-highlighting zsh-autosuggestions \
   xdg-utils imagemagick plocate
 
 install_optional_packages \
@@ -253,6 +280,7 @@ install_optional_packages \
 
 install_packages i3lock
 install_lsd
+install_homebrew_nvim
 
 if ! command -v starship >/dev/null 2>&1; then
   log "Installing starship..."
