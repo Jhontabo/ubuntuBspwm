@@ -157,10 +157,7 @@ function fzf-lovely(){
 	fi
 }
 
-function rmk(){
-	scrub -p dod $1
-	shred -zun 10 -v $1
-}
+# NOTE: removed `rmk()` helper that invoked scrub/shred (permanent data loss)
 
 # Final prompt uses Starship.
 
