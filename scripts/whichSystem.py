@@ -13,14 +13,14 @@ if len(sys.argv) != 2:
 
 def get_ttl(ip_address: str) -> int:
     proc = subprocess.run(
-        ["/usr/bin/ping", "-c", "1", ip_address],
+        ["/usr/bin/ping", "-c", "1", "-W", "2", ip_address],
         capture_output=True,
         text=True,
         check=False,
     )
     output = proc.stdout + proc.stderr
 
-    match = re.search(r"ttl[=|:](\\d+)", output, re.IGNORECASE)
+    match = re.search(r"ttl[=|:]\s*(\d+)", output, re.IGNORECASE)
     if not match:
         raise RuntimeError("No se pudo obtener TTL. Verifica conectividad/IP.")
 
