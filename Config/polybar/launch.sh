@@ -20,7 +20,7 @@ detect_adapter() {
     [ -e "$path" ] || return 1
     name=${path##*/}
     case "$name" in
-      AC|ACAD|ADP*|ADAPTER*|Mains)
+      AC|AC*|ACAD|ADP*|ADAPTER*|Mains)
         printf '%s\n' "$name"
         return 0
         ;;
