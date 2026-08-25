@@ -57,16 +57,16 @@ MIXER_NAME=$(detect_mixer || true)
 if [ -n "$BATTERY_NAME" ] && [ -n "$ADAPTER_NAME" ]; then
   export POLYBAR_BATTERY="$BATTERY_NAME"
   export POLYBAR_ADAPTER="$ADAPTER_NAME"
-  export POLYBAR_RIGHT_MODULES="wifi volume cpu ram battery date powermenu"
+  export POLYBAR_RIGHT_MODULES="wifi volume cpu ram battery date powermenu tray"
 else
   unset POLYBAR_BATTERY POLYBAR_ADAPTER
-  export POLYBAR_RIGHT_MODULES="wifi volume cpu ram date powermenu"
+  export POLYBAR_RIGHT_MODULES="wifi volume cpu ram date powermenu tray"
 fi
 
 if [ -n "$MIXER_NAME" ]; then
   export POLYBAR_MIXER="$MIXER_NAME"
 fi
 
-polybar main -c ~/.config/polybar/pacman.ini &
+polybar main -c ~/.config/polybar/config.ini &
 
 printf 'Polybar iniciada con estetica Pac-Man\n'
