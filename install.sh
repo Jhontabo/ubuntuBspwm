@@ -278,7 +278,7 @@ install_optional_packages \
   fonts-font-awesome \
   libnotify-bin
 
-install_packages i3lock
+install_packages i3lock awesome
 install_lsd
 install_homebrew_nvim
 
