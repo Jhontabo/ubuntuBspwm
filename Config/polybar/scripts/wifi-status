@@ -14,10 +14,13 @@ if [ "$(nmcli radio wifi 2>/dev/null | tr '[:upper:]' '[:lower:]')" != "enabled"
   exit 0
 fi
 
-signal=$(nmcli -t -f ACTIVE,SIGNAL device wifi list ifname "$interface" 2>/dev/null | awk -F: '$1 == "yes" { print $2; exit }')
+active=$(nmcli -t -f ACTIVE,SSID,SIGNAL device wifi list ifname "$interface" 2>/dev/null | awk -F: '$1 == "yes" { print $2 ":" $3; exit }')
 
-if [ -n "$signal" ]; then
-  printf '%s%%\n' "$signal"
+if [ -n "$active" ]; then
+  ssid="${active%%:*}"
+  signal="${active##*:}"
+  clean_ssid=$(printf '%s' "$ssid" | LC_ALL=C tr -cd '[:alnum:] -_')
+  printf '%s %s%%\n' "$clean_ssid" "$signal"
 else
   printf 'offline\n'
 fi
