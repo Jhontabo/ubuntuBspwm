@@ -335,6 +335,7 @@ if [[ -d "$SCRIPT_DIR/Wallpaper" ]]; then
 fi
 
 install_local_script "$SCRIPT_DIR/scripts/wall"
+install_local_script "$SCRIPT_DIR/scripts/wallpaper-picker"
 install_local_script "$SCRIPT_DIR/scripts/file-manager-smart"
 
 sudo install -m 0755 "$SCRIPT_DIR/scripts/whichSystem.py" /usr/local/bin/whichSystem.py

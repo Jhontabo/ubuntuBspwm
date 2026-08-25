@@ -27,8 +27,8 @@ alt + shift + r
 	pkill -USR1 -x sxhkd
 
 # choose wallpaper
-super + w
-	kitty --title "Wallpaper Picker" sh -lc '~/.local/bin/wall'
+alt + shift + w
+	~/.local/bin/wallpaper-picker
 
 # pause mode (disable keybindings)
 alt + shift + p
