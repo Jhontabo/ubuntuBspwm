@@ -57,10 +57,10 @@ MIXER_NAME=$(detect_mixer || true)
 if [ -n "$BATTERY_NAME" ] && [ -n "$ADAPTER_NAME" ]; then
   export POLYBAR_BATTERY="$BATTERY_NAME"
   export POLYBAR_ADAPTER="$ADAPTER_NAME"
-  export POLYBAR_RIGHT_MODULES="date sep volume sep cpu sep ram sep battery sep wifi sep powermenu sep tray"
+  export POLYBAR_RIGHT_MODULES="date sep volume sep keyboard sep cpu sep ram sep battery sep wifi sep powermenu sep tray"
 else
   unset POLYBAR_BATTERY POLYBAR_ADAPTER
-  export POLYBAR_RIGHT_MODULES="date sep volume sep cpu sep ram sep wifi sep powermenu sep tray"
+  export POLYBAR_RIGHT_MODULES="date sep volume sep keyboard sep cpu sep ram sep wifi sep powermenu sep tray"
 fi
 
 if [ -n "$MIXER_NAME" ]; then
