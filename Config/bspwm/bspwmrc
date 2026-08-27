@@ -1,11 +1,22 @@
 #! /bin/sh
 
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}"
+command -v dbus-update-activation-environment >/dev/null 2>&1 &&
+  dbus-update-activation-environment --systemd DISPLAY XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS XDG_SESSION_TYPE >/dev/null 2>&1
+
 wmname LG4D &
 if command -v vmware-user-suid-wrapper >/dev/null 2>&1; then
   vmware-user-suid-wrapper &
 fi
 
 pgrep -x sxhkd >/dev/null || sxhkd &
+
+# NETWORK MANAGER APPLET
+pgrep -x nm-applet >/dev/null || nm-applet &
+
+# BLUETOOTH MANAGER APPLET
+pgrep -x blueman-applet >/dev/null || blueman-applet &
 
 bspc monitor -d I II III IV V VI VII VIII IX X
 
