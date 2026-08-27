@@ -268,6 +268,7 @@ install_packages \
   bspwm sxhkd picom polybar rofi feh xclip scrot wmname acpi xdotool \
   kitty thunar network-manager net-tools \
   alsa-utils pulseaudio-utils \
+  bluez blueman \
   zsh zsh-syntax-highlighting zsh-autosuggestions \
   xdg-utils imagemagick plocate
 
@@ -289,6 +290,10 @@ fi
 
 if systemctl list-unit-files 2>/dev/null | grep -q '^NetworkManager\\.service'; then
   sudo systemctl enable --now NetworkManager >/dev/null 2>&1 || true
+fi
+
+if systemctl list-unit-files 2>/dev/null | grep -q '^bluetooth\\.service'; then
+  sudo systemctl enable --now bluetooth >/dev/null 2>&1 || true
 fi
 
 if ! systemctl list-unit-files 2>/dev/null | grep -q '^display-manager\.service'; then
