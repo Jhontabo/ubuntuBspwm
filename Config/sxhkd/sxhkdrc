@@ -192,6 +192,10 @@ alt + b
 alt + shift + ctrl + b
 	burpsuite
 
+# Bluetooth manager
+alt + shift + b
+	blueman-manager
+
 ###############
 # ScreenShots #
 ###############
@@ -206,16 +210,16 @@ alt + shift + ctrl + b
 	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot screen -c; else screenshot window; fi'
 
 ###############
-# Volume (F1-F3) #
+# Volume #
 ###############
 
-F1
+XF86AudioMute
 	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; else amixer set "${POLYBAR_MIXER:-Master}" toggle >/dev/null 2>&1 || amixer set Master toggle >/dev/null 2>&1; fi'
 
-F2
+XF86AudioLowerVolume
 	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; else amixer set "${POLYBAR_MIXER:-Master}" 5%- unmute >/dev/null 2>&1 || amixer set Master 5%- unmute >/dev/null 2>&1; fi'
 
-F3
+XF86AudioRaiseVolume
 	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+; else amixer set "${POLYBAR_MIXER:-Master}" 5%+ unmute >/dev/null 2>&1 || amixer set Master 5%+ unmute >/dev/null 2>&1; fi'
 
 ##########################
