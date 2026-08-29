@@ -1,0 +1,65 @@
+#!/bin/bash
+STATE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/nightlight.state"
+DISPLAY_ARG="${DISPLAY:-:1}"
+ON="yes"
+
+get_temp() {
+  if [ -f "$STATE_FILE" ]; then
+    cat "$STATE_FILE"
+  else
+    echo "off"
+  fi
+}
+
+apply() {
+  if [ "$1" = "off" ]; then
+    DISPLAY="$DISPLAY_ARG" gammastep -x >/dev/null 2>&1
+    echo "off" > "$STATE_FILE"
+  else
+    DISPLAY="$DISPLAY_ARG" gammastep -m randr -O "$1" >/dev/null 2>&1
+    echo "$1" > "$STATE_FILE"
+  fi
+}
+
+case "$1" in
+  up)
+    cur="$(get_temp)"
+    [ "$cur" = "off" ] && cur=3000
+    if [ "$cur" -ge 6500 ]; then
+      apply 6500
+    else
+      apply "$((cur + 500))"
+    fi
+    ;;
+  down)
+    cur="$(get_temp)"
+    [ "$cur" = "off" ] && cur=4000
+    if [ "$cur" -le 1500 ]; then
+      apply 1500
+    else
+      apply "$((cur - 500))"
+    fi
+    ;;
+  toggle)
+    cur="$(get_temp)"
+    if [ "$cur" = "off" ]; then
+      apply 4000
+    else
+      apply off
+    fi
+    ;;
+  reset)
+    apply off
+    ;;
+  tail)
+    tail -f -n 100000 "$STATE_FILE" 2>/dev/null
+    ;;
+  *)
+    cur="$(get_temp)"
+    if [ "$cur" = "off" ]; then
+      printf '\uf0c2 \n'
+    else
+      printf '\uf0c2 %sK\n' "$cur"
+    fi
+    ;;
+esac

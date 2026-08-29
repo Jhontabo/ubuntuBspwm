@@ -54,6 +54,9 @@ fi
 ~/.config/polybar/launch.sh
 
 # CUSTOM
+# NIGHT COLOR TEMPERATURE
+pgrep -x gammastep >/dev/null 2>&1 || gammastep -m randr -O 4000 &
+
 # Optional animated wallpaper: needs mpv + xwinwrap installed and a video in ~/Wallpaper/mp4
 pkill xwinwrap >/dev/null 2>&1
 pkill mpv >/dev/null 2>&1
