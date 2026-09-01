@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Quick toggle between audio outputs
+# Binds to a hotkey for instant switching
+
+get_sinks() {
+    pactl list short sinks | awk '{print $2}'
+}
+
+get_default_sink() {
+    pactl info | grep 'Default Sink:' | awk '{print $3}'
+}
+
+get_sink_description() {
+    local sink_name="$1"
+    pactl list sinks | awk -v name="$sink_name" '
+        /Name:/ { current_name = $2 }
+        /Description:/ && current_name == name { print $0; exit }
+    ' | sed 's/.*Description:[[:space:]]*//'
+}
+
+main() {
+    local sinks
+    sinks=$(get_sinks)
+
+    local sink_count
+    sink_count=$(echo "$sinks" | wc -l)
+
+    if [ "$sink_count" -le 1 ]; then
+        notify-send "Audio" "Solo hay un dispositivo disponible"
+        exit 0
+    fi
+
+    local current_sink
+    current_sink=$(get_default_sink)
+
+    local next_sink
+    next_sink=$(echo "$sinks" | grep -v "^${current_sink}$" | head -n 1)
+
+    if [ -z "$next_sink" ]; then
+        exit 0
+    fi
+
+    pactl set-default-sink "$next_sink"
+
+    pactl list short sink-inputs | awk '{print $1}' | while read -r input_id; do
+        pactl move-sink-input "$input_id" "$next_sink"
+    done
+
+    local description
+    description=$(get_sink_description "$next_sink")
+
+    if [ -z "$description" ]; then
+        description="$next_sink"
+    fi
+
+    notify-send "Audio" "Salida: $description"
+}
+
+main

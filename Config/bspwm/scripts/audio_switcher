@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Audio output switcher for bspwm
+# Switches between available audio sinks using rofi
+
+get_sinks() {
+    pactl list short sinks | awk '{print $1, $2}'
+}
+
+get_default_sink() {
+    pactl info | grep 'Default Sink:' | awk '{print $3}'
+}
+
+get_sink_description() {
+    local sink_name="$1"
+    pactl list sinks | awk -v name="$sink_name" '
+        /Name:/ { current_name = $2 }
+        /Description:/ && current_name == name { print $0; exit }
+    ' | sed 's/.*Description:[[:space:]]*//'
+}
+
+main() {
+    local sinks
+    sinks=$(get_sinks)
+
+    if [ -z "$sinks" ]; then
+        notify-send "Audio" "No se encontraron dispositivos de audio"
+        exit 1
+    fi
+
+    local sink_count
+    sink_count=$(echo "$sinks" | wc -l)
+
+    if [ "$sink_count" -eq 1 ]; then
+        notify-send "Audio" "Solo hay un dispositivo de audio disponible"
+        exit 0
+    fi
+
+    local current_sink
+    current_sink=$(get_default_sink)
+
+    local rofi_input=""
+    while IFS= read -r line; do
+        local sink_id sink_name
+        sink_id=$(echo "$line" | awk '{print $1}')
+        sink_name=$(echo "$line" | awk '{print $2}')
+
+        local description
+        description=$(get_sink_description "$sink_name")
+
+        if [ -z "$description" ]; then
+            description="$sink_name"
+        fi
+
+        if [ "$sink_name" = "$current_sink" ]; then
+            rofi_input+="  $description\n"
+        else
+            rofi_input+="  $description\n"
+        fi
+    done <<< "$sinks"
+
+    local selected
+    selected=$(echo -e "$rofi_input" | rofi -dmenu -i -p "Salida de audio" \
+        -theme-str 'window {width: 400px;}' \
+        -theme-str 'listview {lines: 5;}')
+
+    if [ -z "$selected" ]; then
+        exit 0
+    fi
+
+    selected=$(echo "$selected" | sed 's/^  //')
+
+    local new_sink=""
+    while IFS= read -r line; do
+        local sink_id sink_name
+        sink_id=$(echo "$line" | awk '{print $1}')
+        sink_name=$(echo "$line" | awk '{print $2}')
+
+        local description
+        description=$(get_sink_description "$sink_name")
+
+        if [ -z "$description" ]; then
+            description="$sink_name"
+        fi
+
+        if [ "$description" = "$selected" ]; then
+            new_sink="$sink_name"
+            break
+        fi
+    done <<< "$sinks"
+
+    if [ -z "$new_sink" ]; then
+        exit 0
+    fi
+
+    if [ "$new_sink" = "$current_sink" ]; then
+        notify-send "Audio" "Ya estás usando: $selected"
+        exit 0
+    fi
+
+    pactl set-default-sink "$new_sink"
+
+    pactl list short sink-inputs | awk '{print $1}' | while read -r input_id; do
+        pactl move-sink-input "$input_id" "$new_sink"
+    done
+
+    notify-send "Audio" "Cambiado a: $selected"
+}
+
+main

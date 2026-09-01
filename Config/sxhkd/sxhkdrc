@@ -4,7 +4,7 @@
 
 # terminal emulator
 alt + Return
-	/usr/bin/kitty
+	/home/jhontabo/.local/bin/kitty
 
 # program launcher
 alt + d
@@ -48,7 +48,7 @@ alt + t
 
 # toggle fullscreen
 alt + f
-	bspc node -t fullscreen
+	bspc node -t {fullscreen,tiled}
 
 # toggle minimized
 alt + m
@@ -200,14 +200,17 @@ alt + shift + b
 # ScreenShots #
 ###############
 
-@Print
+super + shift + s
 	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot gui; else screenshot select; fi'
 
-@Print + ctrl
+Print
 	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot full -c; else screenshot; fi'
 
-@Print + alt
+alt + Print
 	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot screen -c; else screenshot window; fi'
+
+ctrl + shift + s
+	sh -c 'if command -v flameshot >/dev/null 2>&1; then flameshot gui; else screenshot select; fi'
 
 ###############
 # Volume #
@@ -222,12 +225,20 @@ XF86AudioLowerVolume
 XF86AudioRaiseVolume
 	sh -c 'if command -v wpctl >/dev/null 2>&1; then wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+; else amixer set "${POLYBAR_MIXER:-Master}" 5%+ unmute >/dev/null 2>&1 || amixer set Master 5%+ unmute >/dev/null 2>&1; fi'
 
-##########################
+# audio output switcher (rofi menu)
+alt + a
+	~/.config/bspwm/scripts/audio_switcher
+
+# quick toggle audio output
+alt + shift + a
+	~/.config/bspwm/scripts/audio_toggle
+
+#######################
 # Keyboard layout toggle #
-##########################
+#######################
 
 ctrl + space
-	~/.config/polybar/scripts/kbd-toggle
+    ~/.config/polybar/scripts/kbd-toggle
 
 ###############
 # Spotify #

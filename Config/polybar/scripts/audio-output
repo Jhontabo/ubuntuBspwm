@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Polybar audio output module script
+# Shows current output device and allows switching
+
+get_default_sink() {
+    pactl info 2>/dev/null | grep 'Default Sink:' | awk '{print $3}'
+}
+
+get_sink_description() {
+    local sink_name="$1"
+    pactl list sinks 2>/dev/null | awk -v name="$sink_name" '
+        /Name:/ { current_name = $2 }
+        /Description:/ && current_name == name { print $0; exit }
+    ' | sed 's/.*Description:[[:space:]]*//'
+}
+
+get_sink_icon() {
+    local sink_name="$1"
+    if echo "$sink_name" | grep -qi "headphone\|headset\|usb.*audio\|bluetooth"; then
+        echo "󰋋"
+    elif echo "$sink_name" | grep -qi "hdmi\|displayport"; then
+        echo "󰍹"
+    else
+        echo "󰕾"
+    fi
+}
+
+case "$1" in
+    --toggle)
+        sinks=$(pactl list short sinks 2>/dev/null | awk '{print $2}')
+        sink_count=$(echo "$sinks" | wc -l)
+
+        if [ "$sink_count" -le 1 ]; then
+            exit 0
+        fi
+
+        current_sink=$(get_default_sink)
+        next_sink=$(echo "$sinks" | grep -v "^${current_sink}$" | head -n 1)
+
+        if [ -n "$next_sink" ]; then
+            pactl set-default-sink "$next_sink"
+            pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | while read -r id; do
+                pactl move-sink-input "$id" "$next_sink"
+            done
+            description=$(get_sink_description "$next_sink")
+            notify-send "Audio" "Salida: ${description:-$next_sink}"
+        fi
+        ;;
+    --menu)
+        ~/.config/bspwm/scripts/audio_switcher
+        ;;
+    *)
+        current_sink=$(get_default_sink)
+        if [ -z "$current_sink" ]; then
+            echo "󰝟 No audio"
+            exit 0
+        fi
+
+        description=$(get_sink_description "$current_sink")
+        icon=$(get_sink_icon "$current_sink")
+
+        if [ -z "$description" ]; then
+            description="$current_sink"
+        fi
+
+        echo "$icon ${description:0:20}"
+        ;;
+esac
